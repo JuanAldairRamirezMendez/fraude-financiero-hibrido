@@ -1,0 +1,7 @@
+model,precision,recall,f1_score,auc_roc
+Random Forest (Threshold 0.3),0.4681,0.7833,0.586,0.9915
+XGBoost,0.5664,0.81,0.6667,0.9946
+SVM (Linear Optimizado),0.2717,0.97,0.4245,0.9915
+DNN (TensorFlow/Keras),0.5198,0.7,0.5966,0.9793
+Ensamble Soft Voting,0.5184,0.7967,0.6281,0.9937
+Ensamble Stacking (Logistic Regression),0.6706,0.57,0.6162,0.9899

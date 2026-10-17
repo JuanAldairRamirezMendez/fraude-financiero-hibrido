@@ -1,0 +1,33 @@
+{
+  "modelos_optimizados": {
+    "random_forest": {
+      "umbral_optimo": 0.32,
+      "f1_score": 0.5952380904509952,
+      "peso_ensamble": 0.2360276467446617
+    },
+    "xgboost": {
+      "umbral_optimo": 0.6358063817024231,
+      "f1_score": 0.6956521689187614,
+      "peso_ensamble": 0.2758444847813933
+    },
+    "svm": {
+      "umbral_optimo": 0.9555764137253652,
+      "f1_score": 0.6153846105656544,
+      "peso_ensamble": 0.24401627483994065
+    },
+    "dnn": {
+      "umbral_optimo": 0.8931843042373657,
+      "f1_score": 0.6156249950195313,
+      "peso_ensamble": 0.24411159363400434
+    },
+    "weighted_voting": {
+      "umbral_optimo": 0.6035146519881962,
+      "f1_score": 0.6484018215216529
+    }
+  },
+  "metadata": {
+    "fecha_optimizacion": "2026-10-17T13:01:34.879736",
+    "dataset_prueba": 20000,
+    "metodo": "Precision-Recall Curve Optimization"
+  }
+}
