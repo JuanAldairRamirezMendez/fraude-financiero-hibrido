@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-09T18:36:33.789340+00:00",
+  "generatedAt": "2026-11-09T19:48:54.066599+00:00",
   "windowLabel": "Dataset snapshot · 100,000 rows",
   "totalTransactions": 100000,
   "kpis": [
@@ -82,7 +82,7 @@
   "alerts": [
     {
       "id": "ALT-SNAPSHOT-AMOUNT",
-      "occurredAt": "2026-11-09T18:36:33.789340+00:00",
+      "occurredAt": "2026-11-09T19:48:54.066599+00:00",
       "modelId": "XGB-TRANSACTION-TIER2",
       "alertType": "Feature drift",
       "detail": "Transaction amount PSI 0.000 remains within the 0.20 warning threshold.",
@@ -90,7 +90,7 @@
     },
     {
       "id": "ALT-SNAPSHOT-VELOCITY",
-      "occurredAt": "2026-11-09T18:36:33.789340+00:00",
+      "occurredAt": "2026-11-09T19:48:54.066599+00:00",
       "modelId": "XGB-TRANSACTION-TIER2",
       "alertType": "Feature drift",
       "detail": "24h transaction velocity PSI 0.000 remains within the configured threshold.",
@@ -98,7 +98,7 @@
     },
     {
       "id": "ALT-SNAPSHOT-ARTIFACT",
-      "occurredAt": "2026-11-09T18:36:33.789340+00:00",
+      "occurredAt": "2026-11-09T19:48:54.066599+00:00",
       "modelId": "XGB-TRANSACTION-TIER2",
       "alertType": "Performance",
       "detail": "Artifact xgboost-tier2-isotonic-f88d84b82069 loaded with 46 features.",
