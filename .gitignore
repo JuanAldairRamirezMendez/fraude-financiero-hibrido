@@ -35,8 +35,11 @@ backend/artifacts/*.db
 backend/artifacts/*.sqlite
 backend/artifacts/*.sqlite3
 *.db
+*.db-*
 *.sqlite
+*.sqlite-*
 *.sqlite3
+*.sqlite3-*
 
 # Logs
 logs/*.log
