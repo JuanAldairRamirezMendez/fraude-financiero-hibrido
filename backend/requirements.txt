@@ -16,3 +16,5 @@ joblib==1.6.0
 scipy==1.18.1
 slowapi==0.1.10
 prometheus-fastapi-instrumentator==8.1.0
+PyJWT==2.10.1
+argon2-cffi==25.1.0

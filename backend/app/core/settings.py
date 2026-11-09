@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -51,6 +51,18 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     expose_prometheus: bool = True
 
+    auth_enabled: bool = False
+    jwt_secret_key: str = "development-only-change-me"
+    jwt_algorithm: str = "HS256"
+    access_token_minutes: int = 15
+    refresh_token_days: int = 7
+    auth_cookie_secure: bool = False
+    auth_cookie_domain: str | None = None
+    auth_cookie_samesite: str = "lax"
+    auth_bootstrap_username: str | None = None
+    auth_bootstrap_password: str | None = None
+    auth_bootstrap_role: str = "analyst"
+
     @field_validator("environment")
     @classmethod
     def validate_environment(cls, value: str) -> str:
@@ -59,6 +71,20 @@ class Settings(BaseSettings):
         if normalized not in allowed:
             raise ValueError(f"environment must be one of {sorted(allowed)}")
         return normalized
+
+    @model_validator(mode="after")
+    def validate_auth(self) -> Settings:
+        if self.auth_enabled and len(self.jwt_secret_key) < 32:
+            raise ValueError("JWT_SECRET_KEY must contain at least 32 characters when auth is enabled")
+        if self.access_token_minutes < 1 or self.refresh_token_days < 1:
+            raise ValueError("Token lifetimes must be positive")
+        if self.auth_cookie_samesite not in {"lax", "strict", "none"}:
+            raise ValueError("AUTH_COOKIE_SAMESITE must be lax, strict or none")
+        if self.auth_cookie_samesite == "none" and not self.auth_cookie_secure:
+            raise ValueError("AUTH_COOKIE_SECURE must be true when SameSite is none")
+        if self.is_production and self.auth_enabled and self.jwt_secret_key == "development-only-change-me":
+            raise ValueError("JWT_SECRET_KEY must be configured in production")
+        return self
 
     @property
     def is_production(self) -> bool:

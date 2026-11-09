@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Header, Request, Response
 
-from app.core.dependencies import get_analyze_service
+from app.core.dependencies import get_analyze_service, require_roles
 from app.core.rate_limit import limiter
 from app.schemas.api import AnalyzeRequest, AnalyzeResponse, ErrorResponse
 from app.services.analyze_service import AnalyzeService
@@ -28,6 +28,7 @@ def analyze(
     payload: AnalyzeRequest,
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     service: AnalyzeService = Depends(get_analyze_service),
+    _user=Depends(require_roles("admin", "analyst")),
 ) -> AnalyzeResponse:
     _ = response
     return service.analyze(

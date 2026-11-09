@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
-from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,7 +15,11 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.api.v1.router import api_router
 from app.core.errors import ServiceUnavailableError, install_error_handlers
 from app.core.logging import configure_logging, get_logger
-from app.core.middleware import CacheControlMiddleware, RequestContextMiddleware, SecurityHeadersMiddleware
+from app.core.middleware import (
+    CacheControlMiddleware,
+    RequestContextMiddleware,
+    SecurityHeadersMiddleware,
+)
 from app.core.rate_limit import limiter, rate_limit_handler
 from app.core.settings import Settings, get_settings
 from app.db.database import Database
@@ -24,6 +27,7 @@ from app.domain.assessment import Alert
 from app.repositories.sql_repository import SqlFraudRepository
 from app.services.analyze_service import AnalyzeService
 from app.services.artifacts import ArtifactStore
+from app.services.auth_service import AuthService
 from app.services.inference_service import InferenceService
 from app.services.metadata_service import MetadataService
 from app.services.models_service import ModelsService
@@ -67,6 +71,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         repository = SqlFraudRepository(database)
         app.state.database = database
         app.state.repository = repository
+        app.state.auth_service = AuthService(database, app_settings)
+        app.state.auth_service.bootstrap()
 
         store: ArtifactStore | None = None
         inference: InferenceService | None = None
