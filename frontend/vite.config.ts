@@ -6,7 +6,7 @@ import path from "node:path";
 
 import { defineConfig as defineVitestConfig } from "vitest/config";
 
-import siteConfiguration from "./.figma/make/site.json";
+const siteConfiguration = loadSiteConfiguration();
 
 // Vite config — https://vitejs.dev/config/
 export default defineVitestConfig(({ mode }) => {
@@ -93,6 +93,12 @@ type FigmaSiteConfiguration = {
     addBypassLinks?: boolean;
   };
 };
+
+function loadSiteConfiguration(): FigmaSiteConfiguration {
+  const sitePath = path.resolve(__dirname, ".figma/make/site.json");
+  if (!fs.existsSync(sitePath)) return {};
+  return JSON.parse(fs.readFileSync(sitePath, "utf8")) as FigmaSiteConfiguration;
+}
 
 /** Applies /.figma/make/site.json to the generated document shell. */
 function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {

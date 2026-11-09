@@ -26,7 +26,6 @@ from app.schemas.api import (  # noqa: E402
     AnalyzeRequest,
     DecisionThresholdMetadata,
     FieldMetadata,
-    Kpi,
     MetadataResponse,
     ModelInfo,
 )

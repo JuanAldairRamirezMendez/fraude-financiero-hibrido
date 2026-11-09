@@ -6,6 +6,7 @@ from tempfile import TemporaryDirectory
 import pytest
 from fastapi.testclient import TestClient
 
+from app.core.errors import AppError
 from app.core.security import (
     UserPrincipal,
     create_access_token,
@@ -34,7 +35,7 @@ def test_access_token_round_trip_and_rejection() -> None:
     user = UserPrincipal("user-1", "analyst", "analyst")
     token = create_access_token(user, settings)
     assert decode_access_token(token, settings) == user
-    with pytest.raises(Exception):
+    with pytest.raises(AppError):
         decode_access_token("not-a-token", settings)
 
 

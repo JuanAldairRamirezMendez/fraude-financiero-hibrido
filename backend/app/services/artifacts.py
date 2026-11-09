@@ -36,7 +36,7 @@ class ArtifactStore:
         preprocessor_path: Path,
         contract_path: Path,
         metadata_path: Path,
-    ) -> "ArtifactStore":
+    ) -> ArtifactStore:
         missing = [
             str(path)
             for path in [model_path, preprocessor_path, contract_path, metadata_path]

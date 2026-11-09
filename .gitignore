@@ -20,14 +20,29 @@ data/external/*
 !data/external/.gitkeep
 
 # Modelos entrenados
-models_saved/*.pkl
-models_saved/*.h5
-models_saved/*.pth
-models_saved/*.joblib
+models_saved/*
+!models_saved/.gitkeep
+*.pkl
+*.h5
+*.keras
+*.pth
+*.joblib
+
+# Artefactos de entrenamiento y ejecucion
+catboost_info/
+backend/artifacts/*.db
+backend/artifacts/*.sqlite
+backend/artifacts/*.sqlite3
+*.db
+*.sqlite
+*.sqlite3
 
 # Logs
 logs/*.log
 logs/*.txt
+*.log
+*.out
+*.tsv
 
 # Reportes generados
 reports/*
@@ -103,5 +118,14 @@ htmlcov/
 .dmypy.json
 dmypy.json
 
-# Logs de debugging
-*.log
+# Resultados y caches generados por herramientas
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+coverage/
+htmlcov/
+test-results/
+playwright-report/
+dist/
+build/
+*.tsbuildinfo

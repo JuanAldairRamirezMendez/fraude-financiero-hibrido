@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from app.core.errors import ServiceUnavailableError
 from app.domain.transaction import count_signals, risk_level
 from app.services.inference_service import _extract_shap_vector
 
@@ -55,5 +56,5 @@ def test_extract_shap_vector_handles_class_axis() -> None:
 
 
 def test_extract_shap_vector_rejects_wrong_size() -> None:
-    with pytest.raises(Exception):
+    with pytest.raises(ServiceUnavailableError):
         _extract_shap_vector(np.array([0.1, 0.2]), 3)
