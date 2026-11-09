@@ -1,0 +1,530 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-11-09T19:45:09.007565+00:00",
+  "labelColumn": "risk_label",
+  "droppedColumns": [
+    "transaction_id",
+    "customer_id"
+  ],
+  "rawFeatures": [
+    "transaction_hour",
+    "transaction_day_of_week",
+    "account_age_days",
+    "previous_chargebacks",
+    "is_international",
+    "is_high_risk_merchant_category",
+    "is_weekend",
+    "customer_total_transactions_30d",
+    "customer_risk_score",
+    "transaction_amount",
+    "avg_transaction_amount_30d_customer",
+    "transaction_velocity_1h",
+    "transaction_velocity_24h",
+    "merchant_category",
+    "transaction_country",
+    "device_type",
+    "transaction_type",
+    "geo_location_region"
+  ],
+  "numericFeatures": [
+    "transaction_hour",
+    "transaction_day_of_week",
+    "account_age_days",
+    "previous_chargebacks",
+    "is_international",
+    "is_high_risk_merchant_category",
+    "is_weekend",
+    "customer_total_transactions_30d",
+    "customer_risk_score",
+    "transaction_amount",
+    "avg_transaction_amount_30d_customer",
+    "transaction_velocity_1h",
+    "transaction_velocity_24h"
+  ],
+  "categoricalFeatures": [
+    "merchant_category",
+    "transaction_country",
+    "device_type",
+    "transaction_type",
+    "geo_location_region"
+  ],
+  "featureNames": [
+    "transaction_hour",
+    "transaction_day_of_week",
+    "account_age_days",
+    "previous_chargebacks",
+    "is_international",
+    "is_high_risk_merchant_category",
+    "is_weekend",
+    "customer_total_transactions_30d",
+    "customer_risk_score",
+    "transaction_amount",
+    "avg_transaction_amount_30d_customer",
+    "transaction_velocity_1h",
+    "transaction_velocity_24h",
+    "merchant_category_digital_subscriptions",
+    "merchant_category_electronics",
+    "merchant_category_fashion",
+    "merchant_category_fuel",
+    "merchant_category_gambling",
+    "merchant_category_grocery",
+    "merchant_category_luxury_goods",
+    "merchant_category_online_services",
+    "merchant_category_restaurant",
+    "merchant_category_travel",
+    "transaction_country_AU",
+    "transaction_country_BR",
+    "transaction_country_CA",
+    "transaction_country_DE",
+    "transaction_country_FR",
+    "transaction_country_IN",
+    "transaction_country_MX",
+    "transaction_country_NG",
+    "transaction_country_UK",
+    "transaction_country_US",
+    "device_type_desktop",
+    "device_type_mobile",
+    "device_type_tablet",
+    "device_type_wearable",
+    "transaction_type_atm_withdrawal",
+    "transaction_type_card_present_moto",
+    "transaction_type_online",
+    "transaction_type_pos",
+    "geo_location_region_Africa",
+    "geo_location_region_Asia",
+    "geo_location_region_Europe",
+    "geo_location_region_North America",
+    "geo_location_region_South America"
+  ],
+  "categories": {
+    "merchant_category": [
+      "digital_subscriptions",
+      "electronics",
+      "fashion",
+      "fuel",
+      "gambling",
+      "grocery",
+      "luxury_goods",
+      "online_services",
+      "restaurant",
+      "travel"
+    ],
+    "transaction_country": [
+      "AU",
+      "BR",
+      "CA",
+      "DE",
+      "FR",
+      "IN",
+      "MX",
+      "NG",
+      "UK",
+      "US"
+    ],
+    "device_type": [
+      "desktop",
+      "mobile",
+      "tablet",
+      "wearable"
+    ],
+    "transaction_type": [
+      "atm_withdrawal",
+      "card_present_moto",
+      "online",
+      "pos"
+    ],
+    "geo_location_region": [
+      "Africa",
+      "Asia",
+      "Europe",
+      "North America",
+      "South America"
+    ]
+  },
+  "ranges": {
+    "transaction_hour": {
+      "min": 0,
+      "max": 23,
+      "step": 1,
+      "observedMin": 0,
+      "observedMax": 23
+    },
+    "transaction_day_of_week": {
+      "min": 0,
+      "max": 6,
+      "step": 1,
+      "observedMin": 0,
+      "observedMax": 6
+    },
+    "account_age_days": {
+      "min": 0,
+      "max": 3650,
+      "step": 1,
+      "observedMin": 30,
+      "observedMax": 6307
+    },
+    "previous_chargebacks": {
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "observedMin": 0,
+      "observedMax": 5
+    },
+    "is_international": {
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "observedMin": 0,
+      "observedMax": 1
+    },
+    "is_high_risk_merchant_category": {
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "observedMin": 0,
+      "observedMax": 1
+    },
+    "is_weekend": {
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "observedMin": 0,
+      "observedMax": 1
+    },
+    "customer_total_transactions_30d": {
+      "min": 0,
+      "max": 500,
+      "step": 1,
+      "observedMin": 1,
+      "observedMax": 27
+    },
+    "customer_risk_score": {
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "observedMin": 0.0,
+      "observedMax": 7.72
+    },
+    "transaction_amount": {
+      "min": 0.01,
+      "max": 1000000,
+      "step": 0.01,
+      "observedMin": 7.92,
+      "observedMax": 15000.0
+    },
+    "avg_transaction_amount_30d_customer": {
+      "min": 0,
+      "max": 1000000,
+      "step": 0.01,
+      "observedMin": 18.15,
+      "observedMax": 13134.66
+    },
+    "transaction_velocity_1h": {
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "observedMin": 0,
+      "observedMax": 8
+    },
+    "transaction_velocity_24h": {
+      "min": 0,
+      "max": 500,
+      "step": 1,
+      "observedMin": 0,
+      "observedMax": 15
+    }
+  },
+  "defaults": {
+    "transaction_hour": 11,
+    "transaction_day_of_week": 3,
+    "account_age_days": 703,
+    "previous_chargebacks": 0,
+    "is_international": 0,
+    "is_high_risk_merchant_category": 0,
+    "is_weekend": 0,
+    "customer_total_transactions_30d": 6,
+    "customer_risk_score": 0.15,
+    "transaction_amount": 484.15,
+    "avg_transaction_amount_30d_customer": 651.035,
+    "transaction_velocity_1h": 0,
+    "transaction_velocity_24h": 3,
+    "merchant_category": "travel",
+    "transaction_country": "US",
+    "device_type": "mobile",
+    "transaction_type": "online",
+    "geo_location_region": "North America"
+  },
+  "fields": [
+    {
+      "label": "Transaction hour",
+      "group": "Timing",
+      "kind": "integer",
+      "min": 0,
+      "max": 23,
+      "step": 1,
+      "name": "transaction_hour",
+      "required": true,
+      "default": 11,
+      "observedMin": 0,
+      "observedMax": 23
+    },
+    {
+      "label": "Day of week",
+      "group": "Timing",
+      "kind": "integer",
+      "min": 0,
+      "max": 6,
+      "step": 1,
+      "name": "transaction_day_of_week",
+      "required": true,
+      "default": 3,
+      "observedMin": 0,
+      "observedMax": 6
+    },
+    {
+      "label": "Account age (days)",
+      "group": "Account",
+      "kind": "integer",
+      "min": 0,
+      "max": 3650,
+      "step": 1,
+      "name": "account_age_days",
+      "required": true,
+      "default": 703,
+      "observedMin": 30,
+      "observedMax": 6307
+    },
+    {
+      "label": "Previous chargebacks",
+      "group": "Account",
+      "kind": "integer",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "name": "previous_chargebacks",
+      "required": true,
+      "default": 0,
+      "observedMin": 0,
+      "observedMax": 5
+    },
+    {
+      "label": "International transaction",
+      "group": "Context",
+      "kind": "binary",
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "options": [
+        "0",
+        "1"
+      ],
+      "name": "is_international",
+      "required": true,
+      "default": 0,
+      "observedMin": 0,
+      "observedMax": 1
+    },
+    {
+      "label": "High-risk merchant category",
+      "group": "Merchant",
+      "kind": "binary",
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "options": [
+        "0",
+        "1"
+      ],
+      "name": "is_high_risk_merchant_category",
+      "required": true,
+      "default": 0,
+      "observedMin": 0,
+      "observedMax": 1
+    },
+    {
+      "label": "Weekend transaction",
+      "group": "Timing",
+      "kind": "binary",
+      "min": 0,
+      "max": 1,
+      "step": 1,
+      "options": [
+        "0",
+        "1"
+      ],
+      "name": "is_weekend",
+      "required": true,
+      "default": 0,
+      "observedMin": 0,
+      "observedMax": 1
+    },
+    {
+      "label": "Customer transactions (30d)",
+      "group": "Customer",
+      "kind": "integer",
+      "min": 0,
+      "max": 500,
+      "step": 1,
+      "name": "customer_total_transactions_30d",
+      "required": true,
+      "default": 6,
+      "observedMin": 1,
+      "observedMax": 27
+    },
+    {
+      "label": "Customer risk score",
+      "group": "Customer",
+      "kind": "number",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "name": "customer_risk_score",
+      "required": true,
+      "default": 0.15,
+      "observedMin": 0.0,
+      "observedMax": 7.72
+    },
+    {
+      "label": "Transaction amount",
+      "group": "Transaction",
+      "kind": "number",
+      "min": 0.01,
+      "max": 1000000,
+      "step": 0.01,
+      "name": "transaction_amount",
+      "required": true,
+      "default": 484.15,
+      "observedMin": 7.92,
+      "observedMax": 15000.0
+    },
+    {
+      "label": "Average amount (30d)",
+      "group": "Customer",
+      "kind": "number",
+      "min": 0,
+      "max": 1000000,
+      "step": 0.01,
+      "name": "avg_transaction_amount_30d_customer",
+      "required": true,
+      "default": 651.035,
+      "observedMin": 18.15,
+      "observedMax": 13134.66
+    },
+    {
+      "label": "Transaction velocity (1h)",
+      "group": "Velocity",
+      "kind": "integer",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "name": "transaction_velocity_1h",
+      "required": true,
+      "default": 0,
+      "observedMin": 0,
+      "observedMax": 8
+    },
+    {
+      "label": "Transaction velocity (24h)",
+      "group": "Velocity",
+      "kind": "integer",
+      "min": 0,
+      "max": 500,
+      "step": 1,
+      "name": "transaction_velocity_24h",
+      "required": true,
+      "default": 3,
+      "observedMin": 0,
+      "observedMax": 15
+    },
+    {
+      "label": "Merchant category",
+      "group": "Merchant",
+      "kind": "category",
+      "name": "merchant_category",
+      "required": true,
+      "default": "travel",
+      "options": [
+        "digital_subscriptions",
+        "electronics",
+        "fashion",
+        "fuel",
+        "gambling",
+        "grocery",
+        "luxury_goods",
+        "online_services",
+        "restaurant",
+        "travel"
+      ]
+    },
+    {
+      "label": "Transaction country",
+      "group": "Context",
+      "kind": "category",
+      "name": "transaction_country",
+      "required": true,
+      "default": "US",
+      "options": [
+        "AU",
+        "BR",
+        "CA",
+        "DE",
+        "FR",
+        "IN",
+        "MX",
+        "NG",
+        "UK",
+        "US"
+      ]
+    },
+    {
+      "label": "Device type",
+      "group": "Context",
+      "kind": "category",
+      "name": "device_type",
+      "required": true,
+      "default": "mobile",
+      "options": [
+        "desktop",
+        "mobile",
+        "tablet",
+        "wearable"
+      ]
+    },
+    {
+      "label": "Transaction type",
+      "group": "Transaction",
+      "kind": "category",
+      "name": "transaction_type",
+      "required": true,
+      "default": "online",
+      "options": [
+        "atm_withdrawal",
+        "card_present_moto",
+        "online",
+        "pos"
+      ]
+    },
+    {
+      "label": "Geographic region",
+      "group": "Context",
+      "kind": "category",
+      "name": "geo_location_region",
+      "required": true,
+      "default": "North America",
+      "options": [
+        "Africa",
+        "Asia",
+        "Europe",
+        "North America",
+        "South America"
+      ]
+    }
+  ],
+  "decisionThreshold": {
+    "default": 0.5,
+    "min": 0.0,
+    "max": 1.0,
+    "step": 0.01
+  },
+  "note": "The transformed vector has 46 dimensions: 13 scaled numeric features plus 33 one-hot columns."
+}

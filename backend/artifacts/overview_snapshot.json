@@ -1,0 +1,108 @@
+{
+  "generatedAt": "2026-11-09T18:36:33.789340+00:00",
+  "windowLabel": "Dataset snapshot · 100,000 rows",
+  "totalTransactions": 100000,
+  "kpis": [
+    {
+      "id": "transactions",
+      "label": "Total transactions",
+      "value": "100,000",
+      "trend": "Full dataset snapshot",
+      "dataPoints": [
+        12500,
+        12500,
+        12500,
+        12500,
+        12500,
+        12500,
+        12500,
+        12500
+      ]
+    },
+    {
+      "id": "fraud-rate",
+      "label": "Fraud rate",
+      "value": "1.50%",
+      "trend": "1500 labelled fraud cases",
+      "dataPoints": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "id": "f1-score",
+      "label": "Model F1-score",
+      "value": "0.734",
+      "trend": "Tier 2 XGBoost holdout",
+      "dataPoints": [
+        0.7,
+        0.71,
+        0.72,
+        0.72,
+        0.73,
+        0.73,
+        0.734,
+        0.734
+      ]
+    },
+    {
+      "id": "pending-alerts",
+      "label": "Pending alerts",
+      "value": "957",
+      "trend": "654 flagged · 303 review",
+      "dataPoints": [
+        303,
+        654,
+        303,
+        654,
+        303,
+        654,
+        303,
+        957
+      ]
+    }
+  ],
+  "drift": {
+    "psi": 3e-05,
+    "psiThreshold": 0.2,
+    "driftShiftPct": -0.2483,
+    "velocityPsi": 2.1e-05
+  },
+  "statusCounts": {
+    "Approved": 99043,
+    "Flagged": 654,
+    "Review": 303
+  },
+  "alerts": [
+    {
+      "id": "ALT-SNAPSHOT-AMOUNT",
+      "occurredAt": "2026-11-09T18:36:33.789340+00:00",
+      "modelId": "XGB-TRANSACTION-TIER2",
+      "alertType": "Feature drift",
+      "detail": "Transaction amount PSI 0.000 remains within the 0.20 warning threshold.",
+      "status": "RESOLVED"
+    },
+    {
+      "id": "ALT-SNAPSHOT-VELOCITY",
+      "occurredAt": "2026-11-09T18:36:33.789340+00:00",
+      "modelId": "XGB-TRANSACTION-TIER2",
+      "alertType": "Feature drift",
+      "detail": "24h transaction velocity PSI 0.000 remains within the configured threshold.",
+      "status": "RESOLVED"
+    },
+    {
+      "id": "ALT-SNAPSHOT-ARTIFACT",
+      "occurredAt": "2026-11-09T18:36:33.789340+00:00",
+      "modelId": "XGB-TRANSACTION-TIER2",
+      "alertType": "Performance",
+      "detail": "Artifact xgboost-tier2-isotonic-f88d84b82069 loaded with 46 features.",
+      "status": "RESOLVED"
+    }
+  ]
+}

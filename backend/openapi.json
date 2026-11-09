@@ -1,0 +1,1475 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SentinelAI Fraud API",
+    "description": "Contrato congelado de la API de fraude. El frontend genera sus tipos TypeScript desde este archivo con `pnpm gen:api`.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Liveness and readiness",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health/live": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Liveness probe",
+        "operationId": "liveness_api_v1_health_live_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Readiness probe",
+        "operationId": "readiness_api_v1_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/metadata": {
+      "get": {
+        "tags": [
+          "Metadata"
+        ],
+        "summary": "Form contract, categories and model information",
+        "operationId": "metadata_api_v1_metadata_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetadataResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analyze": {
+      "post": {
+        "tags": [
+          "Analyze"
+        ],
+        "summary": "Score a transaction and explain it with SHAP",
+        "operationId": "analyze_api_v1_analyze_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyzeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyzeResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency key reused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid transaction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Model unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/overview": {
+      "get": {
+        "tags": [
+          "Overview"
+        ],
+        "summary": "Dashboard KPIs and server-side transaction pagination",
+        "operationId": "overview_api_v1_overview_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Pagesize"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "decision",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "Flagged",
+                    "Review",
+                    "Approved"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Decision"
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Country"
+            }
+          },
+          {
+            "name": "transactionType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Transactiontype"
+            }
+          },
+          {
+            "name": "minScore",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 100,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Minscore"
+            }
+          },
+          {
+            "name": "maxScore",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 100,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Maxscore"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "id",
+                "customerId",
+                "amount",
+                "score",
+                "transactionHour",
+                "transactionDayOfWeek",
+                "country"
+              ],
+              "type": "string",
+              "default": "score",
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string",
+              "default": "desc",
+              "title": "Order"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverviewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models": {
+      "get": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "Model health, drift and persisted alerts",
+        "operationId": "models_api_v1_models_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnalyzeRequest": {
+        "properties": {
+          "transactionHour": {
+            "type": "integer",
+            "maximum": 23.0,
+            "minimum": 0.0,
+            "title": "Transactionhour"
+          },
+          "transactionDayOfWeek": {
+            "type": "integer",
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Transactiondayofweek"
+          },
+          "accountAgeDays": {
+            "type": "integer",
+            "maximum": 3650.0,
+            "minimum": 0.0,
+            "title": "Accountagedays"
+          },
+          "previousChargebacks": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 0.0,
+            "title": "Previouschargebacks"
+          },
+          "merchantCategory": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Merchantcategory"
+          },
+          "transactionCountry": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Transactioncountry"
+          },
+          "deviceType": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Devicetype"
+          },
+          "transactionType": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Transactiontype"
+          },
+          "geoLocationRegion": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Geolocationregion"
+          },
+          "isInternational": {
+            "type": "integer",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Isinternational"
+          },
+          "isHighRiskMerchantCategory": {
+            "type": "integer",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Ishighriskmerchantcategory"
+          },
+          "isWeekend": {
+            "type": "integer",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Isweekend"
+          },
+          "customerTotalTransactions30d": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Customertotaltransactions30D"
+          },
+          "customerRiskScore": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Customerriskscore"
+          },
+          "transactionAmount": {
+            "type": "number",
+            "maximum": 1000000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Transactionamount"
+          },
+          "avgTransactionAmount30dCustomer": {
+            "type": "number",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Avgtransactionamount30Dcustomer"
+          },
+          "transactionVelocity1h": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Transactionvelocity1H"
+          },
+          "transactionVelocity24h": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Transactionvelocity24H"
+          },
+          "decisionThreshold": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Decisionthreshold",
+            "default": 0.5
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "transactionHour",
+          "transactionDayOfWeek",
+          "accountAgeDays",
+          "previousChargebacks",
+          "merchantCategory",
+          "transactionCountry",
+          "deviceType",
+          "transactionType",
+          "geoLocationRegion",
+          "isInternational",
+          "isHighRiskMerchantCategory",
+          "isWeekend",
+          "customerTotalTransactions30d",
+          "customerRiskScore",
+          "transactionAmount",
+          "avgTransactionAmount30dCustomer",
+          "transactionVelocity1h",
+          "transactionVelocity24h"
+        ],
+        "title": "AnalyzeRequest"
+      },
+      "AnalyzeResponse": {
+        "properties": {
+          "decisionId": {
+            "type": "string",
+            "title": "Decisionid"
+          },
+          "probability": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Probability"
+          },
+          "score": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Level"
+          },
+          "blocked": {
+            "type": "boolean",
+            "title": "Blocked"
+          },
+          "signalsTriggered": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Signalstriggered"
+          },
+          "latencyMs": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Latencyms"
+          },
+          "shap": {
+            "items": {
+              "$ref": "#/components/schemas/ShapContribution"
+            },
+            "type": "array",
+            "title": "Shap"
+          },
+          "topDriver": {
+            "$ref": "#/components/schemas/TopDriver"
+          },
+          "modelVersion": {
+            "type": "string",
+            "title": "Modelversion"
+          },
+          "calibratedThreshold": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Calibratedthreshold"
+          },
+          "idempotentReplay": {
+            "type": "boolean",
+            "title": "Idempotentreplay",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "decisionId",
+          "probability",
+          "score",
+          "level",
+          "blocked",
+          "signalsTriggered",
+          "latencyMs",
+          "shap",
+          "topDriver",
+          "modelVersion",
+          "calibratedThreshold"
+        ],
+        "title": "AnalyzeResponse"
+      },
+      "DecisionThresholdMetadata": {
+        "properties": {
+          "default": {
+            "type": "number",
+            "title": "Default"
+          },
+          "minimum": {
+            "type": "number",
+            "title": "Minimum"
+          },
+          "maximum": {
+            "type": "number",
+            "title": "Maximum"
+          },
+          "step": {
+            "type": "number",
+            "title": "Step"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "default",
+          "minimum",
+          "maximum",
+          "step"
+        ],
+        "title": "DecisionThresholdMetadata"
+      },
+      "ErrorDetail": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "field",
+          "message",
+          "type"
+        ],
+        "title": "ErrorDetail"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "requestId": {
+            "type": "string",
+            "title": "Requestid"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                },
+                "type": "array"
+              },
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "requestId"
+        ],
+        "title": "ErrorResponse"
+      },
+      "FieldMetadata": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "group": {
+            "type": "string",
+            "title": "Group"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "integer",
+              "number",
+              "binary",
+              "category"
+            ],
+            "title": "Kind"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required"
+          },
+          "default": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Default"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "minimum": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum"
+          },
+          "maximum": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maximum"
+          },
+          "step": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step"
+          },
+          "observedMinimum": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observedminimum"
+          },
+          "observedMaximum": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observedmaximum"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "label",
+          "group",
+          "kind",
+          "required",
+          "default"
+        ],
+        "title": "FieldMetadata"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthChecks": {
+        "properties": {
+          "modelLoaded": {
+            "type": "boolean",
+            "title": "Modelloaded"
+          },
+          "preprocessorLoaded": {
+            "type": "boolean",
+            "title": "Preprocessorloaded"
+          },
+          "databaseOk": {
+            "type": "boolean",
+            "title": "Databaseok"
+          },
+          "snapshotLoaded": {
+            "type": "boolean",
+            "title": "Snapshotloaded"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "modelLoaded",
+          "preprocessorLoaded",
+          "databaseOk",
+          "snapshotLoaded"
+        ],
+        "title": "HealthChecks"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ],
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment"
+          },
+          "uptimeSeconds": {
+            "type": "number",
+            "title": "Uptimeseconds"
+          },
+          "modelVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modelversion"
+          },
+          "checks": {
+            "$ref": "#/components/schemas/HealthChecks"
+          },
+          "requestId": {
+            "type": "string",
+            "title": "Requestid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "environment",
+          "uptimeSeconds",
+          "modelVersion",
+          "checks",
+          "requestId"
+        ],
+        "title": "HealthResponse"
+      },
+      "Kpi": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "trend": {
+            "type": "string",
+            "title": "Trend"
+          },
+          "dataPoints": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Datapoints"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "value",
+          "trend",
+          "dataPoints"
+        ],
+        "title": "Kpi"
+      },
+      "MetadataResponse": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "generatedAt": {
+            "type": "string",
+            "title": "Generatedat"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelInfo"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/FieldMetadata"
+            },
+            "type": "array",
+            "title": "Fields"
+          },
+          "categories": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "object",
+            "title": "Categories"
+          },
+          "defaults": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Defaults"
+          },
+          "decisionThreshold": {
+            "$ref": "#/components/schemas/DecisionThresholdMetadata"
+          },
+          "featureNames": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Featurenames"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "version",
+          "generatedAt",
+          "model",
+          "fields",
+          "categories",
+          "defaults",
+          "decisionThreshold",
+          "featureNames"
+        ],
+        "title": "MetadataResponse"
+      },
+      "ModelAlert": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "occurredAt": {
+            "type": "string",
+            "title": "Occurredat"
+          },
+          "modelId": {
+            "type": "string",
+            "title": "Modelid"
+          },
+          "alertType": {
+            "type": "string",
+            "title": "Alerttype"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "UNACKNOWLEDGED",
+              "ACKNOWLEDGED",
+              "RESOLVED"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "occurredAt",
+          "modelId",
+          "alertType",
+          "detail",
+          "status"
+        ],
+        "title": "ModelAlert"
+      },
+      "ModelHealth": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "stable",
+              "degraded"
+            ],
+            "title": "Status"
+          },
+          "uptimePct": {
+            "type": "number",
+            "title": "Uptimepct"
+          },
+          "avgLatencyMs": {
+            "type": "number",
+            "title": "Avglatencyms"
+          },
+          "criticalIssues": {
+            "type": "integer",
+            "title": "Criticalissues"
+          },
+          "psi": {
+            "type": "number",
+            "title": "Psi"
+          },
+          "driftShiftPct": {
+            "type": "number",
+            "title": "Driftshiftpct"
+          },
+          "psiThreshold": {
+            "type": "number",
+            "title": "Psithreshold"
+          },
+          "windowLabel": {
+            "type": "string",
+            "title": "Windowlabel"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "uptimePct",
+          "avgLatencyMs",
+          "criticalIssues",
+          "psi",
+          "driftShiftPct",
+          "psiThreshold",
+          "windowLabel"
+        ],
+        "title": "ModelHealth"
+      },
+      "ModelInfo": {
+        "properties": {
+          "modelId": {
+            "type": "string",
+            "title": "Modelid"
+          },
+          "modelVersion": {
+            "type": "string",
+            "title": "Modelversion"
+          },
+          "algorithm": {
+            "type": "string",
+            "title": "Algorithm"
+          },
+          "calibration": {
+            "type": "string",
+            "title": "Calibration"
+          },
+          "featureCount": {
+            "type": "integer",
+            "title": "Featurecount"
+          },
+          "calibratedThreshold": {
+            "type": "number",
+            "title": "Calibratedthreshold"
+          },
+          "calibrationF1": {
+            "type": "number",
+            "title": "Calibrationf1"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Metrics"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "modelId",
+          "modelVersion",
+          "algorithm",
+          "calibration",
+          "featureCount",
+          "calibratedThreshold",
+          "calibrationF1",
+          "disclaimer",
+          "metrics"
+        ],
+        "title": "ModelInfo"
+      },
+      "ModelsResponse": {
+        "properties": {
+          "health": {
+            "$ref": "#/components/schemas/ModelHealth"
+          },
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/ModelAlert"
+            },
+            "type": "array",
+            "title": "Alerts"
+          },
+          "updatedAt": {
+            "type": "string",
+            "title": "Updatedat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "health",
+          "alerts",
+          "updatedAt"
+        ],
+        "title": "ModelsResponse"
+      },
+      "OverviewResponse": {
+        "properties": {
+          "kpis": {
+            "items": {
+              "$ref": "#/components/schemas/Kpi"
+            },
+            "type": "array",
+            "title": "Kpis"
+          },
+          "transactions": {
+            "$ref": "#/components/schemas/TransactionPage"
+          },
+          "totalTransactions": {
+            "type": "integer",
+            "title": "Totaltransactions"
+          },
+          "updatedAt": {
+            "type": "string",
+            "title": "Updatedat"
+          },
+          "windowLabel": {
+            "type": "string",
+            "title": "Windowlabel"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kpis",
+          "transactions",
+          "totalTransactions",
+          "updatedAt",
+          "windowLabel"
+        ],
+        "title": "OverviewResponse"
+      },
+      "ShapContribution": {
+        "properties": {
+          "feature": {
+            "type": "string",
+            "title": "Feature"
+          },
+          "impact": {
+            "type": "number",
+            "title": "Impact"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "increases",
+              "decreases"
+            ],
+            "title": "Direction"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "feature",
+          "impact",
+          "direction"
+        ],
+        "title": "ShapContribution"
+      },
+      "TopDriver": {
+        "properties": {
+          "feature": {
+            "type": "string",
+            "title": "Feature"
+          },
+          "impactPct": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Impactpct"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "feature",
+          "impactPct"
+        ],
+        "title": "TopDriver"
+      },
+      "TransactionItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "customerId": {
+            "type": "string",
+            "title": "Customerid"
+          },
+          "transactionHour": {
+            "type": "integer",
+            "title": "Transactionhour"
+          },
+          "transactionDayOfWeek": {
+            "type": "integer",
+            "title": "Transactiondayofweek"
+          },
+          "amount": {
+            "type": "number",
+            "title": "Amount"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "merchantCategory": {
+            "type": "string",
+            "title": "Merchantcategory"
+          },
+          "transactionType": {
+            "type": "string",
+            "title": "Transactiontype"
+          },
+          "deviceType": {
+            "type": "string",
+            "title": "Devicetype"
+          },
+          "score": {
+            "type": "integer",
+            "title": "Score"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Flagged",
+              "Review",
+              "Approved"
+            ],
+            "title": "Status"
+          },
+          "riskLabel": {
+            "type": "integer",
+            "title": "Risklabel"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "customerId",
+          "transactionHour",
+          "transactionDayOfWeek",
+          "amount",
+          "country",
+          "region",
+          "merchantCategory",
+          "transactionType",
+          "deviceType",
+          "score",
+          "status",
+          "riskLabel"
+        ],
+        "title": "TransactionItem"
+      },
+      "TransactionPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TransactionItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Page"
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Pagesize"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total"
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Totalpages"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total",
+          "totalPages"
+        ],
+        "title": "TransactionPage"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

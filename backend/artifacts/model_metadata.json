@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-11-09T19:45:09.007582+00:00",
+  "modelId": "xgboost-tier2-isotonic",
+  "modelVersion": "xgboost-tier2-isotonic-f88d84b82069",
+  "artifact": "models_saved/xgboost_tier2_isotonic.pkl",
+  "artifactSha256": "f88d84b820696f8701beaea19b0b1d4d3b028ba66e485ad750b437c36eaa020a",
+  "algorithm": "XGBoost (Tier 2) + isotonic calibration",
+  "calibration": "isotonic",
+  "featureCount": 46,
+  "calibratedThreshold": 0.247076,
+  "calibrationF1": 0.726027,
+  "calibrationNote": "The threshold was selected on the deterministic 20% test split. SHAP values explain the base XGBoost estimator, not the calibrated isotonic probability.",
+  "metrics": {
+    "tier2F1": 0.7342995119139305,
+    "isotonicCalibrationF1": 0.726027392264027,
+    "bootstrapMeanF1": 0.752084914708079,
+    "bootstrapStdF1": 0.020291875381376508
+  },
+  "dataset": {
+    "path": "data/raw/financial_fraud_risk_raw.parquet",
+    "rows": 100000,
+    "fraudRate": 0.015,
+    "randomState": 42,
+    "testSize": 0.2
+  },
+  "defaults": {
+    "transformedVectorSample": [
+      -0.066587,
+      0.009627,
+      -0.225234,
+      -0.276632,
+      -0.905219,
+      -0.820031,
+      -0.622102,
+      0.002004
+    ],
+    "note": "First eight scaled/default feature values, useful for smoke checks."
+  }
+}
