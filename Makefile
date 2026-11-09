@@ -2,7 +2,7 @@
 # MAKEFILE - Sistema Híbrido de Detección de Fraude Financiero
 # =============================================================================
 
-.PHONY: setup install download audit clean train evaluate ensemble report pipeline clean-files test notebook help
+.PHONY: setup install pipeline clean-files test notebook help
 
 # Variables
 PYTHON := python3
@@ -28,50 +28,10 @@ install:
 	$(PIP) install -r requirements.txt
 	@echo "✅ Dependencias instaladas"
 
-## Descargar dataset de Hugging Face
-download:
-	@echo "📥 Descargando dataset..."
-	$(PYTHON_VENV) scripts/01_download_dataset.py
-	@echo "✅ Dataset descargado"
-
-## Auditoría de calidad de datos
-audit:
-	@echo "🔍 Ejecutando auditoría de calidad..."
-	$(PYTHON_VENV) scripts/02_audit_quality.py
-	@echo "✅ Auditoría completada"
-
-## Limpieza y guardado en PostgreSQL
-clean:
-	@echo "🧹 Limpiando datos..."
-	$(PYTHON_VENV) scripts/03_clean_data.py
-	@echo "✅ Datos limpios y guardados en PostgreSQL"
-
-## Entrenar todos los modelos
-train:
-	@echo "🤖 Entrenando modelos..."
-	$(PYTHON_VENV) scripts/04_train_models.py
-	@echo "✅ Modelos entrenados"
-
-## Evaluar modelos
-evaluate:
-	@echo "📊 Evaluando modelos..."
-	$(PYTHON_VENV) scripts/05_evaluate_models.py
-	@echo "✅ Evaluación completada"
-
-## Generar ensamble
-ensemble:
-	@echo "🎭 Generando ensamble..."
-	$(PYTHON_VENV) scripts/06_generate_ensemble.py
-	@echo "✅ Ensamble generado"
-
-## Generar reporte final
-report:
-	@echo "📄 Generando reporte..."
-	$(PYTHON_VENV) scripts/07_generate_report.py
-	@echo "✅ Reporte generado"
-
-## Pipeline completo
-pipeline: download audit clean train evaluate ensemble report
+## Ejecutar pipeline completo unificado (CRISP-DM, fases 1-12)
+pipeline:
+	@echo "🚀 Ejecutando pipeline completo CRISP-DM..."
+	$(PYTHON_VENV) pipeline_completo.py
 	@echo "✅ Pipeline completado exitosamente"
 
 # =============================================================================
@@ -106,14 +66,7 @@ help:
 	@echo "Comandos disponibles:"
 	@echo "  make setup       - Configurar entorno virtual"
 	@echo "  make install     - Instalar dependencias"
-	@echo "  make download    - Descargar dataset"
-	@echo "  make audit       - Auditoría de calidad"
-	@echo "  make clean       - Limpieza de datos"
-	@echo "  make train       - Entrenar modelos"
-	@echo "  make evaluate    - Evaluar modelos"
-	@echo "  make ensemble    - Generar ensamble"
-	@echo "  make report      - Generar reporte"
-	@echo "  make pipeline    - Ejecutar pipeline completo"
+	@echo "  make pipeline    - Ejecutar pipeline completo (pipeline_completo.py)"
 	@echo "  make clean-files - Limpiar archivos temporales"
 	@echo "  make test        - Ejecutar tests"
 	@echo "  make notebook    - Iniciar Jupyter Notebook"

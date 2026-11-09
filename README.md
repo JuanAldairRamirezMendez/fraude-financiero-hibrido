@@ -81,7 +81,8 @@ fraude-financiero-hibrido/
 │   ├── interpretability/ # XAI
 │   ├── visualization/  # Gráficos
 │   └── utils/          # Utilidades
-├── scripts/            # Scripts ejecutables
+├── frontend/           # Interfaz Streamlit (en desarrollo)
+├── pipeline_completo.py # Pipeline unificado (reemplaza scripts/01-15)
 ├── tests/              # Tests unitarios
 ├── logs/               # Logs de ejecución
 ├── models_saved/       # Modelos entrenados
@@ -94,14 +95,9 @@ fraude-financiero-hibrido/
 \`\`\`bash
 make setup          # Configurar entorno virtual
 make install        # Instalar dependencias
-make download       # Descargar dataset
-make audit          # Auditoría de calidad
-make clean          # Limpieza de datos
-make train          # Entrenar modelos
-make evaluate       # Evaluar modelos
-make ensemble       # Generar ensamble
-make report         # Generar reporte
-make pipeline       # Ejecutar pipeline completo
+make pipeline       # Ejecutar pipeline completo (pipeline_completo.py)
+make clean-files    # Limpiar archivos temporales
+make test           # Ejecutar tests
 \`\`\`
 
 ## Licencia

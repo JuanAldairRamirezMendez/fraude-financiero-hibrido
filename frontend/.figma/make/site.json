@@ -1,0 +1,11 @@
+{
+  "title": "SentinelAI · Fraud Detection",
+  "description": "Monitor banking fraud risks, analyze suspicious transactions, and track model health and concept drift to help fraud teams act quickly and confidently.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
