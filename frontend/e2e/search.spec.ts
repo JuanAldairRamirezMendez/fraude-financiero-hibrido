@@ -5,12 +5,12 @@ test.describe("búsqueda global", () => {
     await page.goto("/");
 
     const search = page.getByLabel("Buscar transacciones por ID o cliente");
-    await search.fill("Olivia");
+    await search.fill("CUST07640");
     await search.press("Enter");
 
-    await expect(page).toHaveURL(/\?q=Olivia/);
-    await expect(page.getByRole("cell", { name: "Olivia Martin" })).toBeVisible();
-    await expect(page.locator("tbody tr")).toHaveCount(1);
+    await expect(page).toHaveURL(/\?q=CUST07640/);
+    await expect(page.getByRole("cell", { name: "CUST07640" }).first()).toBeVisible();
+    await expect(page.locator("tbody tr")).toHaveCount(5);
   });
 
   test("muestra el estado vacío sin coincidencias", async ({ page }) => {

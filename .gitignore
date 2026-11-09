@@ -3,6 +3,7 @@ venv/
 env/
 ENV/
 .venv/
+node_modules/
 
 # Variables de entorno
 .env
@@ -87,6 +88,11 @@ MANIFEST
 .project
 .pydevproject
 .settings/
+
+# Estado local de herramientas
+.opencode/
+.plugins/
+.opencode-skills/
 
 # Sistema operativo
 .DS_Store

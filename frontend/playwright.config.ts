@@ -8,7 +8,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.VITE_USE_MOCKS === "false" || process.env.CI ? 1 : undefined,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
     baseURL,
@@ -34,6 +34,7 @@ export default defineConfig({
     command: `npx vite --port ${PORT} --strictPort`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
+    env: { VITE_USE_MOCKS: "false" },
     timeout: 120_000,
   },
 });
