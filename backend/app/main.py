@@ -28,6 +28,7 @@ from app.repositories.sql_repository import SqlFraudRepository
 from app.services.analyze_service import AnalyzeService
 from app.services.artifacts import ArtifactStore
 from app.services.auth_service import AuthService
+from app.services.case_service import CaseService
 from app.services.inference_service import InferenceService
 from app.services.metadata_service import MetadataService
 from app.services.models_service import ModelsService
@@ -98,6 +99,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 calibrated_threshold=store.calibrated_threshold,
                 idempotency_ttl_hours=app_settings.idempotency_ttl_hours,
             )
+            app.state.case_service = CaseService(repository)
             app.state.models_service = ModelsService(repository, snapshot, started_at)
             app.state.model_version = store.model_version
             if app_settings.seed_snapshot_alerts:

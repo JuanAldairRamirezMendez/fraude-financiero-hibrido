@@ -4,6 +4,10 @@ WORKDIR /workspace/frontend
 COPY frontend/package.json ./
 RUN npm install --ignore-scripts
 COPY frontend/ ./
+ARG VITE_API_BASE_URL=""
+ARG VITE_USE_MOCKS=false
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
+    VITE_USE_MOCKS=$VITE_USE_MOCKS
 RUN npm run build
 
 FROM python:3.13-slim AS runtime

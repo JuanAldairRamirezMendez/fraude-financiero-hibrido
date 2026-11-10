@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -21,7 +22,11 @@ from app.core.settings import Settings  # noqa: E402
 from app.domain.assessment import Alert  # noqa: E402
 from app.domain.transaction import Assessment, ShapContribution, risk_level  # noqa: E402
 from app.main import create_app  # noqa: E402
-from app.repositories.protocols import IdempotencyEntry, PersistedDecision  # noqa: E402
+from app.repositories.protocols import (  # noqa: E402
+    IdempotencyEntry,
+    PersistedCase,
+    PersistedDecision,
+)
 from app.schemas.api import (  # noqa: E402
     AnalyzeRequest,
     DecisionThresholdMetadata,
@@ -67,6 +72,7 @@ class FakeRepository:
     def __init__(self) -> None:
         self.decisions: list[PersistedDecision] = []
         self.idempotency: dict[str, IdempotencyEntry] = {}
+        self.cases: dict[str, PersistedCase] = {}
         self.alerts = [
             Alert(
                 id="ALT-TEST-1",
@@ -119,6 +125,42 @@ class FakeRepository:
 
     def count_decisions(self) -> int:
         return len(self.decisions)
+
+    def get_decision(self, decision_id: str) -> PersistedDecision | None:
+        return next(
+            (decision for decision in self.decisions if decision.decision_id == decision_id),
+            None,
+        )
+
+    def create_case(self, case: PersistedCase, actor: str) -> None:
+        _ = actor
+        self.cases[case.id] = case
+
+    def get_case(self, case_id: str) -> PersistedCase | None:
+        return self.cases.get(case_id)
+
+    def list_cases(
+        self, *, status: str | None = None, assigned_to: str | None = None
+    ) -> list[PersistedCase]:
+        cases = list(self.cases.values())
+        if status:
+            cases = [case for case in cases if case.status == status]
+        if assigned_to:
+            cases = [case for case in cases if case.assigned_to == assigned_to]
+        return cases
+
+    def update_case(self, case: PersistedCase, actor: str) -> None:
+        _ = actor
+        self.cases[case.id] = case
+
+    def add_case_note(self, case_id: str, author: str, content: str) -> None:
+        case = self.cases[case_id]
+        note = {
+            "author": author,
+            "content": content,
+            "createdAt": datetime.now(UTC).isoformat(),
+        }
+        self.cases[case_id] = replace(case, notes=(*case.notes, note))
 
 
 def _metadata() -> MetadataResponse:
@@ -269,6 +311,10 @@ def client(
 
     app.dependency_overrides[get_metadata_service] = lambda: FakeMetadataService()
     app.dependency_overrides[get_models_service] = lambda: models_service
+    from app.core.dependencies import get_case_service
+    from app.services.case_service import CaseService
+
+    app.dependency_overrides[get_case_service] = lambda: CaseService(fake_repository)
 
     with TestClient(app) as test_client:
         yield test_client

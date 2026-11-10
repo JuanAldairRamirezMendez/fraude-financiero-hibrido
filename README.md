@@ -28,6 +28,7 @@ Construir un sistema operativo para evaluar transacciones financieras sospechosa
 - Interpretabilidad con SHAP
 - API REST con autenticación opcional y RBAC
 - Dashboard para overview, análisis y modelo
+- Gestión inicial de casos antifraude, asignación y feedback humano
 - Endpoints de salud y monitoreo
 - Cobertura de pruebas backend/frontend y E2E
 - Contenerización con Docker y orquestación local con Docker Compose
@@ -174,6 +175,8 @@ AUTH_ENABLED=true
 AUTH_BOOTSTRAP_USERNAME=admin
 AUTH_BOOTSTRAP_PASSWORD=change_me
 AUTH_COOKIE_SECURE=false
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.5-flash
 ```
 
 > El backend también puede cargar configuración desde `backend/.env` si se desea aislar el entorno del servicio.
@@ -214,6 +217,11 @@ npm run dev
 La interfaz queda disponible en:
 
 - `http://localhost:8443`
+
+Para conectar el frontend al backend real durante el desarrollo, crea
+`frontend/.env` con `VITE_USE_MOCKS=false`. El valor por defecto es `true` para
+permitir trabajar con datos simulados sin iniciar la API. En producción,
+`VITE_USE_MOCKS=false` debe estar definido durante la compilación del frontend.
 
 ## Ejecutar el pipeline completo
 
@@ -268,9 +276,8 @@ npm run format:check
 
 La API soporta autenticación JWT opcional y control de acceso por roles. En modo autenticado, se usan cookies seguras y hashes de contraseña con Argon2. Los roles típicos del sistema incluyen:
 
-- `admin`
-- `analyst`
-- `viewer`
+Los endpoints protegidos de análisis y chat admiten actualmente los roles
+`admin` y `analyst`.
 
 El flujo principal incluye:
 

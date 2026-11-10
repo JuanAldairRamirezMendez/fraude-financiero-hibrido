@@ -1,14 +1,22 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from uuid import uuid4
 
 from sqlalchemy import func, select
 
 from app.db.database import Database
-from app.db.models import AlertRecord, AuditLogRecord, DecisionRecord, IdempotencyRecord
+from app.db.models import (
+    AlertRecord,
+    AuditLogRecord,
+    CaseNoteRecord,
+    DecisionRecord,
+    FraudCaseRecord,
+    IdempotencyRecord,
+)
 from app.domain.assessment import Alert
 
-from .protocols import IdempotencyEntry, PersistedDecision
+from .protocols import IdempotencyEntry, PersistedCase, PersistedDecision
 
 
 class SqlFraudRepository:
@@ -196,3 +204,126 @@ class SqlFraudRepository:
     def count_decisions(self) -> int:
         with self._database.session() as session:
             return int(session.scalar(select(func.count()).select_from(DecisionRecord)) or 0)
+
+    def get_decision(self, decision_id: str) -> PersistedDecision | None:
+        with self._database.session() as session:
+            record = session.scalar(
+                select(DecisionRecord).where(DecisionRecord.decision_id == decision_id)
+            )
+            if record is None:
+                return None
+            return PersistedDecision(
+                id=record.id,
+                decision_id=record.decision_id,
+                probability=record.probability,
+                score=record.score,
+                level=record.level,
+                blocked=record.blocked,
+                transaction_amount=record.transaction_amount,
+                model_version=record.model_version,
+                request_payload=dict(record.request_payload),
+                response_payload=dict(record.response_payload),
+                request_id="",
+            )
+
+    @staticmethod
+    def _case_from_record(session, record: FraudCaseRecord) -> PersistedCase:  # type: ignore[no-untyped-def]
+        notes = tuple(
+            {
+                "author": note.author,
+                "content": note.content,
+                "createdAt": note.created_at.isoformat(),
+            }
+            for note in session.scalars(
+                select(CaseNoteRecord)
+                .where(CaseNoteRecord.case_id == record.id)
+                .order_by(CaseNoteRecord.created_at.asc())
+            ).all()
+        )
+        return PersistedCase(
+            id=record.id,
+            case_number=record.case_number,
+            decision_id=record.decision_id,
+            status=record.status,
+            assigned_to=record.assigned_to,
+            verdict=record.verdict,
+            feedback_comment=record.feedback_comment,
+            created_at=record.created_at,
+            updated_at=record.updated_at,
+            resolved_at=record.resolved_at,
+            notes=notes,
+        )
+
+    def create_case(self, case: PersistedCase, actor: str) -> None:
+        with self._database.session() as session:
+            session.add(
+                FraudCaseRecord(
+                    id=case.id,
+                    case_number=case.case_number,
+                    decision_id=case.decision_id,
+                    status=case.status,
+                    assigned_to=case.assigned_to,
+                    verdict=case.verdict,
+                    feedback_comment=case.feedback_comment,
+                    created_at=case.created_at,
+                    updated_at=case.updated_at,
+                )
+            )
+            session.add(
+                AuditLogRecord(
+                    request_id="case-api",
+                    action="create_fraud_case",
+                    entity_id=case.id,
+                    details={"actor": actor, "decisionId": case.decision_id},
+                )
+            )
+            session.flush()
+
+    def get_case(self, case_id: str) -> PersistedCase | None:
+        with self._database.session() as session:
+            record = session.get(FraudCaseRecord, case_id)
+            return self._case_from_record(session, record) if record is not None else None
+
+    def list_cases(
+        self, *, status: str | None = None, assigned_to: str | None = None
+    ) -> list[PersistedCase]:
+        with self._database.session() as session:
+            query = select(FraudCaseRecord).order_by(FraudCaseRecord.updated_at.desc())
+            if status:
+                query = query.where(FraudCaseRecord.status == status)
+            if assigned_to:
+                query = query.where(FraudCaseRecord.assigned_to == assigned_to)
+            return [self._case_from_record(session, record) for record in session.scalars(query).all()]
+
+    def update_case(self, case: PersistedCase, actor: str) -> None:
+        with self._database.session() as session:
+            record = session.get(FraudCaseRecord, case.id)
+            if record is None:
+                return
+            record.status = case.status
+            record.assigned_to = case.assigned_to
+            record.verdict = case.verdict
+            record.feedback_comment = case.feedback_comment
+            record.updated_at = case.updated_at
+            record.resolved_at = case.resolved_at
+            session.add(
+                AuditLogRecord(
+                    request_id="case-api",
+                    action="update_fraud_case",
+                    entity_id=case.id,
+                    details={
+                        "actor": actor,
+                        "status": case.status,
+                        "assignedTo": case.assigned_to,
+                        "verdict": case.verdict,
+                    },
+                )
+            )
+            session.flush()
+
+    def add_case_note(self, case_id: str, author: str, content: str) -> None:
+        with self._database.session() as session:
+            session.add(
+                CaseNoteRecord(id=str(uuid4()), case_id=case_id, author=author, content=content)
+            )
+            session.flush()

@@ -9,6 +9,7 @@ from app.core.security import UserPrincipal, decode_access_token
 from app.repositories.protocols import FraudRepository
 from app.services.analyze_service import AnalyzeService
 from app.services.auth_service import AuthService
+from app.services.case_service import CaseService
 from app.services.inference_service import InferenceService
 from app.services.metadata_service import MetadataService
 from app.services.models_service import ModelsService
@@ -61,6 +62,13 @@ def get_auth_service(request: Request) -> AuthService:
     service = getattr(request.app.state, "auth_service", None)
     if service is None:
         raise ServiceUnavailableError("El servicio de autenticación no está disponible.")
+    return service
+
+
+def get_case_service(request: Request) -> CaseService:
+    service = getattr(request.app.state, "case_service", None)
+    if service is None:
+        raise ServiceUnavailableError("El servicio de casos no está disponible.")
     return service
 
 

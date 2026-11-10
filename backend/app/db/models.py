@@ -46,6 +46,41 @@ class DecisionRecord(Base):
     )
 
 
+class FraudCaseRecord(Base):
+    __tablename__ = "fraud_cases"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    case_number: Mapped[str] = mapped_column(String(40), unique=True, nullable=False)
+    decision_id: Mapped[str] = mapped_column(
+        ForeignKey("decisions.decision_id"), unique=True, nullable=False
+    )
+    status: Mapped[str] = mapped_column(String(24), nullable=False, default="new")
+    assigned_to: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    verdict: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    feedback_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        Index("ix_fraud_cases_status", "status"),
+        Index("ix_fraud_cases_assigned_to", "assigned_to"),
+        Index("ix_fraud_cases_updated_at", "updated_at"),
+    )
+
+
+class CaseNoteRecord(Base):
+    __tablename__ = "fraud_case_notes"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    case_id: Mapped[str] = mapped_column(ForeignKey("fraud_cases.id"), nullable=False)
+    author: Mapped[str] = mapped_column(String(120), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+    __table_args__ = (Index("ix_fraud_case_notes_case_id", "case_id"),)
+
+
 class IdempotencyRecord(Base):
     __tablename__ = "idempotency_keys"
 

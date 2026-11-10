@@ -36,7 +36,7 @@ export function ChatPage() {
     setError(null);
     setIsSending(true);
     try {
-      const response = await apiRequest<ChatResponse>("/api/v1/chat", {
+      const response = await apiRequest<ChatResponse>("/chat", {
         method: "POST",
         body: { message, history: messages.slice(-12) },
       });

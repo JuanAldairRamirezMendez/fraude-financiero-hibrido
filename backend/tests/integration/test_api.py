@@ -33,6 +33,45 @@ def test_analyze_idempotent_replay_and_conflict(client, valid_payload):  # type:
     assert conflict.json()["code"] == "conflict"
 
 
+def test_case_lifecycle_and_human_feedback(client, valid_payload):  # type: ignore[no-untyped-def]
+    analyzed = client.post("/api/v1/analyze", json=valid_payload).json()
+    decision_id = analyzed["decisionId"]
+
+    created = client.post(
+        "/api/v1/cases",
+        json={"decisionId": decision_id, "assignedTo": "analyst@example.com"},
+    )
+    assert created.status_code == 201
+    case = created.json()
+    assert case["status"] == "new"
+    assert case["decisionId"] == decision_id
+
+    duplicate = client.post("/api/v1/cases", json={"decisionId": decision_id})
+    assert duplicate.status_code == 409
+
+    updated = client.patch(
+        f"/api/v1/cases/{case['id']}",
+        json={
+            "status": "resolved",
+            "verdict": "confirmed_fraud",
+            "feedbackComment": "La revisión confirmó el patrón de riesgo.",
+            "note": "Se validó con evidencia del comercio.",
+        },
+    )
+    assert updated.status_code == 200
+    assert updated.json()["status"] == "resolved"
+    assert updated.json()["verdict"] == "confirmed_fraud"
+    assert len(updated.json()["notes"]) == 1
+
+
+def test_case_requires_verdict_to_resolve(client, valid_payload):  # type: ignore[no-untyped-def]
+    decision_id = client.post("/api/v1/analyze", json=valid_payload).json()["decisionId"]
+    case = client.post("/api/v1/cases", json={"decisionId": decision_id}).json()
+    response = client.patch(f"/api/v1/cases/{case['id']}", json={"status": "resolved"})
+    assert response.status_code == 409
+    assert response.json()["code"] == "conflict"
+
+
 def test_analyze_rejects_extra_fields(client, valid_payload):  # type: ignore[no-untyped-def]
     response = client.post(
         "/api/v1/analyze", json={**valid_payload, "unexpected": "value"}

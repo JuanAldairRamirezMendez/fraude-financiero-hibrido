@@ -3,6 +3,7 @@ import { createBrowserRouter } from "react-router-dom";
 
 import { PageSkeleton } from "@/components/ui/PageState";
 import { ChatPage } from "@/features/chat/ChatPage";
+import { CasesPage } from "@/features/cases/CasesPage";
 
 import { AppLayout } from "./layout/AppLayout";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
       { path: "analyzer", element: withSuspense(<AnalyzerPage />) },
       { path: "models", element: withSuspense(<ModelsPage />) },
       { path: "chat", element: withSuspense(<ChatPage />) },
+      { path: "cases", element: withSuspense(<CasesPage />) },
       { path: "reports", element: <ReportsPage /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "*", element: <NotFoundPage /> },

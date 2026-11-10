@@ -208,6 +208,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List fraud cases */
+        get: operations["list_cases_api_v1_cases_get"];
+        put?: never;
+        /** Open a fraud case */
+        post: operations["create_case_api_v1_cases_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cases/{case_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a fraud case */
+        get: operations["get_case_api_v1_cases__case_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a fraud case */
+        patch: operations["update_case_api_v1_cases__case_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -311,6 +347,70 @@ export interface components {
              * @enum {string}
              */
             role: "admin" | "analyst" | "viewer";
+        };
+        /** CaseCreateRequest */
+        CaseCreateRequest: {
+            /** Decisionid */
+            decisionId: string;
+            /** Assignedto */
+            assignedTo?: string | null;
+        };
+        /** CaseListResponse */
+        CaseListResponse: {
+            /** Items */
+            items: components["schemas"]["CaseResponse"][];
+            /** Total */
+            total: number;
+        };
+        /** CaseNote */
+        CaseNote: {
+            /** Author */
+            author: string;
+            /** Content */
+            content: string;
+            /** Createdat */
+            createdAt: string;
+        };
+        /** CaseResponse */
+        CaseResponse: {
+            /** Id */
+            id: string;
+            /** Casenumber */
+            caseNumber: string;
+            /** Decisionid */
+            decisionId: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "in_review" | "escalated" | "resolved";
+            /** Assignedto */
+            assignedTo: string | null;
+            /** Verdict */
+            verdict: ("confirmed_fraud" | "false_positive" | "inconclusive") | null;
+            /** Feedbackcomment */
+            feedbackComment: string | null;
+            /** Createdat */
+            createdAt: string;
+            /** Updatedat */
+            updatedAt: string;
+            /** Resolvedat */
+            resolvedAt: string | null;
+            /** Notes */
+            notes: components["schemas"]["CaseNote"][];
+        };
+        /** CaseUpdateRequest */
+        CaseUpdateRequest: {
+            /** Status */
+            status?: ("new" | "in_review" | "escalated" | "resolved") | null;
+            /** Assignedto */
+            assignedTo?: string | null;
+            /** Verdict */
+            verdict?: ("confirmed_fraud" | "false_positive" | "inconclusive") | null;
+            /** Feedbackcomment */
+            feedbackComment?: string | null;
+            /** Note */
+            note?: string | null;
         };
         /** ChatMessage */
         ChatMessage: {
@@ -1027,6 +1127,145 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_cases_api_v1_cases_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                assignedTo?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                access_token?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_case_api_v1_cases_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                access_token?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaseCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_case_api_v1_cases__case_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: {
+                access_token?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_case_api_v1_cases__case_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: {
+                access_token?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaseUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

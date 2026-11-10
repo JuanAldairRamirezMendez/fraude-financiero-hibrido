@@ -12,6 +12,7 @@ export const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { to: "/analyzer", label: "Analyzer", icon: "alert" },
   { to: "/models", label: "Models", icon: "model" },
   { to: "/chat", label: "AI Copilot", icon: "message" },
+  { to: "/cases", label: "Cases", icon: "alert" },
   { to: "/reports", label: "Reports", icon: "report" },
   { to: "/settings", label: "Settings", icon: "settings" },
 ];
@@ -25,6 +26,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/": { eyebrow: "Command center", title: "Overview" },
   "/analyzer": { eyebrow: "Real-time decisioning", title: "Transaction Analyzer" },
   "/models": { eyebrow: "Monitoring & governance", title: "Model Health" },
+  "/cases": { eyebrow: "Investigation workflow", title: "Fraud Cases" },
   "/reports": { eyebrow: "Analytics", title: "Reports" },
   "/settings": { eyebrow: "Administration", title: "Settings" },
 };

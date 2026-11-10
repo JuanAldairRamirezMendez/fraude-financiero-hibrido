@@ -30,6 +30,21 @@ class IdempotencyEntry:
     expires_at: datetime
 
 
+@dataclass(frozen=True, slots=True)
+class PersistedCase:
+    id: str
+    case_number: str
+    decision_id: str
+    status: str
+    assigned_to: str | None
+    verdict: str | None
+    feedback_comment: str | None
+    created_at: datetime
+    updated_at: datetime
+    resolved_at: datetime | None
+    notes: tuple[dict[str, str], ...]
+
+
 class FraudRepository(Protocol):
     def ping(self) -> bool: ...
 
@@ -55,3 +70,17 @@ class FraudRepository(Protocol):
     def seed_alerts(self, alerts: list[Alert]) -> int: ...
 
     def average_latency_ms(self, window: int = 100) -> float: ...
+
+    def get_decision(self, decision_id: str) -> PersistedDecision | None: ...
+
+    def create_case(self, case: PersistedCase, actor: str) -> None: ...
+
+    def get_case(self, case_id: str) -> PersistedCase | None: ...
+
+    def list_cases(
+        self, *, status: str | None = None, assigned_to: str | None = None
+    ) -> list[PersistedCase]: ...
+
+    def update_case(self, case: PersistedCase, actor: str) -> None: ...
+
+    def add_case_note(self, case_id: str, author: str, content: str) -> None: ...

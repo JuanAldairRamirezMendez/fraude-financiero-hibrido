@@ -10,6 +10,8 @@ ShapDirection = Literal["increases", "decreases"]
 TransactionStatus = Literal["Flagged", "Review", "Approved"]
 AlertStatus = Literal["UNACKNOWLEDGED", "ACKNOWLEDGED", "RESOLVED"]
 AlertType = Literal["Feature drift", "Data quality", "Prediction drift", "Performance"]
+CaseStatus = Literal["new", "in_review", "escalated", "resolved"]
+CaseVerdict = Literal["confirmed_fraud", "false_positive", "inconclusive"]
 
 
 class ApiModel(BaseModel):
@@ -264,3 +266,41 @@ class ChatRequest(ApiModel):
 class ChatResponse(ApiModel):
     message: str
     model: str
+
+
+class CaseCreateRequest(ApiModel):
+    decision_id: str = Field(min_length=1, max_length=40)
+    assigned_to: str | None = Field(default=None, max_length=120)
+
+
+class CaseUpdateRequest(ApiModel):
+    status: CaseStatus | None = None
+    assigned_to: str | None = Field(default=None, max_length=120)
+    verdict: CaseVerdict | None = None
+    feedback_comment: str | None = Field(default=None, max_length=4_000)
+    note: str | None = Field(default=None, min_length=1, max_length=4_000)
+
+
+class CaseNote(ApiModel):
+    author: str
+    content: str
+    created_at: str
+
+
+class CaseResponse(ApiModel):
+    id: str
+    case_number: str
+    decision_id: str
+    status: CaseStatus
+    assigned_to: str | None
+    verdict: CaseVerdict | None
+    feedback_comment: str | None
+    created_at: str
+    updated_at: str
+    resolved_at: str | None
+    notes: list[CaseNote]
+
+
+class CaseListResponse(ApiModel):
+    items: list[CaseResponse]
+    total: int
