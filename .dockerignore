@@ -12,7 +12,8 @@ data/
 logs/
 reports/
 catboost_info/
-models_saved/
+models_saved/*
+!models_saved/xgboost_tier2_isotonic.pkl
 backend/artifacts/*.db
 backend/artifacts/*.sqlite*
 backend/.pytest_cache/

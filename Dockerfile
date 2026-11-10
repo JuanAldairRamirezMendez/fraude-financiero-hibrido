@@ -22,6 +22,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY backend/ ./
 COPY --from=frontend-build /workspace/frontend/dist /app/frontend/dist
+COPY models_saved/xgboost_tier2_isotonic.pkl /app/models_saved/xgboost_tier2_isotonic.pkl
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 

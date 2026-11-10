@@ -28,6 +28,7 @@ models_saved/*
 *.keras
 *.pth
 *.joblib
+!models_saved/xgboost_tier2_isotonic.pkl
 
 # Artefactos de entrenamiento y ejecucion
 catboost_info/
