@@ -11,6 +11,7 @@ export const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { to: "/", label: "Overview", icon: "grid", end: true },
   { to: "/analyzer", label: "Analyzer", icon: "alert" },
   { to: "/models", label: "Models", icon: "model" },
+  { to: "/chat", label: "AI Copilot", icon: "message" },
   { to: "/reports", label: "Reports", icon: "report" },
   { to: "/settings", label: "Settings", icon: "settings" },
 ];

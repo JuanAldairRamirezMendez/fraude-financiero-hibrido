@@ -18,7 +18,8 @@ export type IconName =
   | "arrow"
   | "check"
   | "menu"
-  | "close";
+  | "close"
+  | "message";
 
 const paths: Record<IconName, ReactNode> = {
   grid: (
@@ -119,6 +120,12 @@ const paths: Record<IconName, ReactNode> = {
     <>
       <path d="m6 6 12 12" />
       <path d="m18 6-12 12" />
+    </>
+  ),
+  message: (
+    <>
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v7a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4h0A2.5 2.5 0 0 1 4 12.5v-7Z" />
+      <path d="M8 8h8M8 11h5" />
     </>
   ),
 };

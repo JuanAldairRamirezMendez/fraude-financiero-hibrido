@@ -48,8 +48,8 @@ export function Sidebar({ open, onNavigate }: SidebarProps) {
       <div className="sidebar-status">
         <span className="status-dot" aria-hidden="true" />
         <div>
-          <strong>Modo demo</strong>
-          <span>Datos simulados · sin backend</span>
+          <strong>Operación conectada</strong>
+          <span>API y modelo disponibles</span>
         </div>
       </div>
 

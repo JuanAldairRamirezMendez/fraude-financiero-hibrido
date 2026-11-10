@@ -191,6 +191,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask the fraud operations assistant */
+        post: operations["chat_api_v1_chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -294,6 +311,30 @@ export interface components {
              * @enum {string}
              */
             role: "admin" | "analyst" | "viewer";
+        };
+        /** ChatMessage */
+        ChatMessage: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "model";
+            /** Content */
+            content: string;
+        };
+        /** ChatRequest */
+        ChatRequest: {
+            /** Message */
+            message: string;
+            /** History */
+            history?: components["schemas"]["ChatMessage"][];
+        };
+        /** ChatResponse */
+        ChatResponse: {
+            /** Message */
+            message: string;
+            /** Model */
+            model: string;
         };
         /** DecisionThresholdMetadata */
         DecisionThresholdMetadata: {
@@ -933,6 +974,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chat_api_v1_chat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                access_token?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Gemini unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

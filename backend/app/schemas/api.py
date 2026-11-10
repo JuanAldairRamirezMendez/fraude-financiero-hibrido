@@ -244,3 +244,23 @@ class ErrorResponse(ApiModel):
     message: str
     request_id: str
     details: list[ErrorDetail] | dict[str, str] | None = None
+
+
+class ChatMessage(ApiModel):
+    role: Literal["user", "model"]
+    content: str = Field(min_length=1, max_length=4_000)
+
+
+class ChatRequest(ApiModel):
+    message: str = Field(min_length=1, max_length=4_000)
+    history: list[ChatMessage] = Field(default_factory=list, max_length=12)
+
+    @field_validator("message")
+    @classmethod
+    def strip_message(cls, value: str) -> str:
+        return value.strip()
+
+
+class ChatResponse(ApiModel):
+    message: str
+    model: str

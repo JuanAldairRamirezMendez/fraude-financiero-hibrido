@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     expose_prometheus: bool = True
 
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-2.5-flash"
+    gemini_timeout_seconds: int = 30
+
     auth_enabled: bool = False
     jwt_secret_key: str = "development-only-change-me"
     jwt_algorithm: str = "HS256"
