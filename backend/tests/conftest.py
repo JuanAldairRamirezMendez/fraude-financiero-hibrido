@@ -26,6 +26,7 @@ from app.repositories.protocols import (  # noqa: E402
     IdempotencyEntry,
     PersistedCase,
     PersistedDecision,
+    PersistedEvent,
 )
 from app.schemas.api import (  # noqa: E402
     AnalyzeRequest,
@@ -37,6 +38,26 @@ from app.schemas.api import (  # noqa: E402
 from app.services.analyze_service import AnalyzeService  # noqa: E402
 from app.services.models_service import ModelsService  # noqa: E402
 from app.services.snapshot_service import SnapshotService  # noqa: E402
+
+
+def _decision_event(decision: PersistedDecision) -> PersistedEvent:
+    now = datetime.now(UTC)
+    return PersistedEvent(
+        id=decision.id,
+        event_type="decision.created",
+        aggregate_id=decision.decision_id,
+        payload={
+            "decisionId": decision.decision_id,
+            "score": decision.score,
+            "level": decision.level,
+            "blocked": decision.blocked,
+        },
+        status="pending",
+        attempts=0,
+        available_at=now,
+        created_at=now,
+        published_at=None,
+    )
 
 
 class FakeInferenceService:
@@ -73,6 +94,7 @@ class FakeRepository:
         self.decisions: list[PersistedDecision] = []
         self.idempotency: dict[str, IdempotencyEntry] = {}
         self.cases: dict[str, PersistedCase] = {}
+        self.events: list[PersistedEvent] = []
         self.alerts = [
             Alert(
                 id="ALT-TEST-1",
@@ -89,6 +111,7 @@ class FakeRepository:
 
     def save_decision(self, decision: PersistedDecision) -> None:
         self.decisions.append(decision)
+        self.events.append(_decision_event(decision))
 
     def save_decision_with_idempotency(
         self,
@@ -99,6 +122,7 @@ class FakeRepository:
         expires_at: datetime,
     ) -> None:
         self.decisions.append(decision)
+        self.events.append(_decision_event(decision))
         self.idempotency[key] = IdempotencyEntry(
             key=key,
             request_hash=request_hash,
@@ -113,6 +137,22 @@ class FakeRepository:
         self, key: str, request_hash: str, response_payload: dict, expires_at: datetime
     ) -> None:
         self.idempotency[key] = IdempotencyEntry(key, request_hash, response_payload, expires_at)
+
+    def list_pending_events(self, limit: int = 100) -> list[PersistedEvent]:
+        return [event for event in self.events if event.status == "pending"][:limit]
+
+    def mark_event_published(self, event_id: str) -> None:
+        self.events = [
+            replace(
+                event,
+                status="published",
+                published_at=datetime.now(UTC),
+                attempts=event.attempts + 1,
+            )
+            if event.id == event_id
+            else event
+            for event in self.events
+        ]
 
     def list_alerts(self, limit: int = 100) -> list[Alert]:
         return self.alerts[:limit]

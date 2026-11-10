@@ -31,6 +31,19 @@ class IdempotencyEntry:
 
 
 @dataclass(frozen=True, slots=True)
+class PersistedEvent:
+    id: str
+    event_type: str
+    aggregate_id: str
+    payload: dict
+    status: str
+    attempts: int
+    available_at: datetime
+    created_at: datetime
+    published_at: datetime | None
+
+
+@dataclass(frozen=True, slots=True)
 class PersistedCase:
     id: str
     case_number: str
@@ -64,6 +77,10 @@ class FraudRepository(Protocol):
     def save_idempotency(
         self, key: str, request_hash: str, response_payload: dict, expires_at: datetime
     ) -> None: ...
+
+    def list_pending_events(self, limit: int = 100) -> list[PersistedEvent]: ...
+
+    def mark_event_published(self, event_id: str) -> None: ...
 
     def list_alerts(self, limit: int = 100) -> list[Alert]: ...
 

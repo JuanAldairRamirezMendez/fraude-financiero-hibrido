@@ -13,10 +13,11 @@ from app.db.models import (
     DecisionRecord,
     FraudCaseRecord,
     IdempotencyRecord,
+    OutboxEventRecord,
 )
 from app.domain.assessment import Alert
 
-from .protocols import IdempotencyEntry, PersistedCase, PersistedDecision
+from .protocols import IdempotencyEntry, PersistedCase, PersistedDecision, PersistedEvent
 
 
 class SqlFraudRepository:
@@ -34,33 +35,7 @@ class SqlFraudRepository:
 
     def save_decision(self, decision: PersistedDecision) -> None:
         with self._database.session() as session:
-            session.add(
-                DecisionRecord(
-                    id=decision.id,
-                    decision_id=decision.decision_id,
-                    probability=decision.probability,
-                    score=decision.score,
-                    level=decision.level,
-                    blocked=decision.blocked,
-                    transaction_amount=decision.transaction_amount,
-                    model_version=decision.model_version,
-                    request_payload=decision.request_payload,
-                    response_payload=decision.response_payload,
-                )
-            )
-            session.add(
-                AuditLogRecord(
-                    request_id=decision.request_id,
-                    action="analyze_transaction",
-                    entity_id=decision.decision_id,
-                    details={
-                        "score": decision.score,
-                        "level": decision.level,
-                        "blocked": decision.blocked,
-                        "modelVersion": decision.model_version,
-                    },
-                )
-            )
+            self._add_decision(session, decision)
             session.flush()
 
     def save_decision_with_idempotency(
@@ -72,34 +47,7 @@ class SqlFraudRepository:
         expires_at: datetime,
     ) -> None:
         with self._database.session() as session:
-            session.add(
-                DecisionRecord(
-                    id=decision.id,
-                    decision_id=decision.decision_id,
-                    probability=decision.probability,
-                    score=decision.score,
-                    level=decision.level,
-                    blocked=decision.blocked,
-                    transaction_amount=decision.transaction_amount,
-                    model_version=decision.model_version,
-                    request_payload=decision.request_payload,
-                    response_payload=decision.response_payload,
-                )
-            )
-            session.add(
-                AuditLogRecord(
-                    request_id=decision.request_id,
-                    action="analyze_transaction",
-                    entity_id=decision.decision_id,
-                    details={
-                        "score": decision.score,
-                        "level": decision.level,
-                        "blocked": decision.blocked,
-                        "modelVersion": decision.model_version,
-                        "idempotencyKey": key,
-                    },
-                )
-            )
+            self._add_decision(session, decision, idempotency_key=key)
             session.merge(
                 IdempotencyRecord(
                     key=key,
@@ -108,6 +56,94 @@ class SqlFraudRepository:
                     expires_at=expires_at,
                 )
             )
+            session.flush()
+
+    @staticmethod
+    def _add_decision(session, decision: PersistedDecision, *, idempotency_key: str | None = None):  # type: ignore[no-untyped-def]
+        session.add(
+            DecisionRecord(
+                id=decision.id,
+                decision_id=decision.decision_id,
+                probability=decision.probability,
+                score=decision.score,
+                level=decision.level,
+                blocked=decision.blocked,
+                transaction_amount=decision.transaction_amount,
+                model_version=decision.model_version,
+                request_payload=decision.request_payload,
+                response_payload=decision.response_payload,
+            )
+        )
+        details = {
+            "score": decision.score,
+            "level": decision.level,
+            "blocked": decision.blocked,
+            "modelVersion": decision.model_version,
+        }
+        if idempotency_key:
+            details["idempotencyKey"] = idempotency_key
+        session.add(
+            AuditLogRecord(
+                request_id=decision.request_id,
+                action="analyze_transaction",
+                entity_id=decision.decision_id,
+                details=details,
+            )
+        )
+        session.add(
+            OutboxEventRecord(
+                id=str(uuid4()),
+                event_type="decision.created",
+                aggregate_id=decision.decision_id,
+                payload={
+                    "decisionId": decision.decision_id,
+                    "probability": decision.probability,
+                    "score": decision.score,
+                    "level": decision.level,
+                    "blocked": decision.blocked,
+                    "modelVersion": decision.model_version,
+                    "transactionAmount": decision.transaction_amount,
+                    "requestPayload": decision.request_payload,
+                    "responsePayload": decision.response_payload,
+                },
+            )
+        )
+
+    def list_pending_events(self, limit: int = 100) -> list[PersistedEvent]:
+        now = datetime.now(UTC)
+        with self._database.session() as session:
+            rows = session.scalars(
+                select(OutboxEventRecord)
+                .where(
+                    OutboxEventRecord.status == "pending",
+                    OutboxEventRecord.available_at <= now,
+                )
+                .order_by(OutboxEventRecord.created_at.asc())
+                .limit(limit)
+            ).all()
+            return [
+                PersistedEvent(
+                    id=row.id,
+                    event_type=row.event_type,
+                    aggregate_id=row.aggregate_id,
+                    payload=dict(row.payload),
+                    status=row.status,
+                    attempts=row.attempts,
+                    available_at=row.available_at,
+                    created_at=row.created_at,
+                    published_at=row.published_at,
+                )
+                for row in rows
+            ]
+
+    def mark_event_published(self, event_id: str) -> None:
+        with self._database.session() as session:
+            event = session.get(OutboxEventRecord, event_id)
+            if event is None:
+                return
+            event.status = "published"
+            event.published_at = datetime.now(UTC)
+            event.attempts += 1
             session.flush()
 
     def get_idempotency(self, key: str) -> IdempotencyEntry | None:

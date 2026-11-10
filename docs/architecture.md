@@ -143,6 +143,20 @@ Esta primera vertical permite cerrar el ciclo básico de revisión, pero aún no
 incluye adjuntos, escalamiento automático, SLA, colaboración entre equipos ni
 retroalimentación automática al pipeline de entrenamiento.
 
+## Eventos empresariales
+
+Cada decisión persistida también crea un evento `decision.created` en la tabla
+`outbox_events`, dentro de la misma transacción que la decisión y su auditoría.
+El evento conserva el payload de la decisión, comienza en estado `pending` y
+puede ser reclamado por un worker para publicarlo en Kafka, una cola o un
+adaptador de proveedor externo. El estado pasa a `published` únicamente después
+de que el transporte confirme la publicación.
+
+Este outbox es la primera pieza de la integración empresarial: evita perder un
+evento cuando la base de datos confirma una decisión pero el broker está caído.
+Todavía no incluye un broker concreto, reintentos distribuidos ni consumidores;
+esas piezas deben añadirse cuando se defina el proveedor de mensajería.
+
 ## Frontend
 
 Las rutas React son `/`, `/analyzer`, `/models`, `/chat`, `/reports` y
