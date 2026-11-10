@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 
 import { Icon } from "@/components/ui/Icon";
 
+import { useAuth } from "../auth/AuthContext";
 import { NAV_ITEMS } from "./navigation";
 
 interface SidebarProps {
@@ -11,6 +12,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ open, onNavigate }: SidebarProps) {
+  const { user, logout } = useAuth();
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -53,15 +55,15 @@ export function Sidebar({ open, onNavigate }: SidebarProps) {
         </div>
       </div>
 
-      <div className="profile">
+      <button className="profile" type="button" onClick={() => void logout()}>
         <span className="avatar" aria-hidden="true">
           FA
         </span>
         <span>
-          <strong>Fraude Analytics</strong>
-          <small>Sesión de demostración</small>
+          <strong>{user?.username ?? "Fraude Analytics"}</strong>
+          <small>Cerrar sesión</small>
         </span>
-      </div>
+      </button>
     </aside>
   );
 }
