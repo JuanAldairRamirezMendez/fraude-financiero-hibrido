@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
 
 from app.schemas.api import HealthChecks, HealthResponse
 
@@ -40,6 +41,13 @@ def _payload(request: Request) -> HealthResponse:
     )
 
 
+def _response(request: Request, *, readiness: bool) -> HealthResponse | JSONResponse:
+    payload = _payload(request)
+    if readiness and payload.status != "ok":
+        return JSONResponse(status_code=503, content=payload.model_dump(by_alias=True))
+    return payload
+
+
 @router.get("/health", response_model=HealthResponse, summary="Liveness and readiness")
 def health(request: Request) -> HealthResponse:
     return _payload(request)
@@ -50,6 +58,11 @@ def liveness(request: Request) -> HealthResponse:
     return _payload(request)
 
 
-@router.get("/health/ready", response_model=HealthResponse, summary="Readiness probe")
-def readiness(request: Request) -> HealthResponse:
-    return _payload(request)
+@router.get(
+    "/health/ready",
+    response_model=HealthResponse,
+    responses={503: {"description": "Application dependencies are unavailable."}},
+    summary="Readiness probe",
+)
+def readiness(request: Request) -> HealthResponse | JSONResponse:
+    return _response(request, readiness=True)

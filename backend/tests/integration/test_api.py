@@ -141,6 +141,12 @@ def test_health_reports_degraded_without_artifacts(client):  # type: ignore[no-u
     assert body["status"] == "degraded"
     assert body["requestId"]
 
+    liveness = client.get("/api/v1/health/live")
+    assert liveness.status_code == 200
+
+    readiness = client.get("/api/v1/health/ready")
+    assert readiness.status_code == 503
+
 
 def test_security_headers_and_request_id(client):  # type: ignore[no-untyped-def]
     response = client.get("/api/v1/metadata", headers={"X-Request-ID": "client-id-123"})
