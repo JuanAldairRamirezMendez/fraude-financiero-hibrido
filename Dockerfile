@@ -23,6 +23,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 COPY backend/ ./
 COPY --from=frontend-build /workspace/frontend/dist /app/frontend/dist
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 RUN mkdir -p /app/backend/artifacts /app/models_saved \
     && chown -R app:app /app
