@@ -141,3 +141,8 @@ playwright-report/
 dist/
 build/
 *.tsbuildinfo
+
+# humanish runtime and local secrets
+.humanish/
+.env*
+!.env.example

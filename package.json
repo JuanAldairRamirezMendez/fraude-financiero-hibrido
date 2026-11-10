@@ -1,6 +1,16 @@
 {
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
-    "@commitlint/config-conventional": "^21.2.4"
+    "@commitlint/config-conventional": "^21.2.4",
+    "@e2b/desktop": "^2.5.0",
+    "humanish": "^0.159.0"
+  },
+  "scripts": {
+    "humanish": "humanish",
+    "humanish:doctor": "humanish doctor",
+    "humanish:run": "humanish run --dry-run",
+    "humanish:watch": "humanish watch",
+    "humanish:watch:ci": "humanish watch --json --no-open",
+    "humanish:verify": "humanish verify"
   }
 }

@@ -1,0 +1,13 @@
+schema: humanish.scenario.v1
+id: first-run-smoke
+title: First-run smoke
+persona: synthetic-new-user
+goal: Reach the first meaningful product state without using private data.
+mode: dry-run
+steps:
+  - name: Open the app
+    expectation: The app shell is reachable.
+  - name: Complete the first synthetic action
+    expectation: The user sees a clear next state.
+  - name: Capture review notes
+    expectation: Notes are public-safe and evidence-backed.

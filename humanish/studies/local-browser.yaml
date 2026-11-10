@@ -1,0 +1,24 @@
+schema: humanish.study.v3
+id: local-browser
+title: Local browser · your app · Codex account
+description: >-
+  Runs one participant on your Codex account in an isolated local browser against your loopback
+  app. Needs no E2B or OpenAI API key: inference is remote and uses your Codex account quota.
+  Before the first live run, check the Codex login and the local runtime with humanish doctor
+  --study local-browser.
+route: computer-use
+mode: live
+subject:
+  source: app-url
+  appUrl: "http://127.0.0.1:3000"
+actor:
+  type: local-agent
+  localAgent: codex
+  persona: synthetic-new-user
+  mission: "Use the app's primary flow. Explain anything confusing and stop when the task is complete or you are stuck."
+execution:
+  target: local
+  concurrency: 1
+  timeoutMs: 120000
+defaults:
+  open: true

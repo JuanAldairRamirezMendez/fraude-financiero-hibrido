@@ -1,0 +1,69 @@
+schema: humanish.study.v3
+id: cua-browser
+title: Computer-use browser study
+description: >-
+  A computer-use participant drives your app in a hosted desktop browser and writes its evidence
+  to gitignored .humanish/. Starts as a dry run. For a live session, set mode to live
+  and pass OPENAI_API_KEY and E2B_API_KEY with --dotenv. The clone subject below serves your
+  repo inside the sandbox, and the env names declared under subject get their values from
+  --dotenv without the values being saved. Screenshots keep full fidelity by default; set
+  policies.redactScreenshots: true to blur them at capture for a bundle you can share as is.
+  Typed text is recorded as its length only.
+route: computer-use
+mode: dry-run
+subject:
+  source: clone
+  repos: [your-org/your-app]
+  serve:
+    install: pnpm install --frozen-lockfile
+    build: pnpm build
+    start: pnpm start
+    url: http://127.0.0.1:3000/
+    # installTimeoutMs: 1200000   # bump for monorepo-scale installs/builds (default 600000)
+    # buildTimeoutMs: 1800000
+  # env: [DATABASE_URL]
+  # state:                        # the subject's state, recorded as provenance:
+  #   seed:                       # ordered, bounded seed/migration/fixture steps (commands are
+  #     - name: db-up             # author-trusted; evidence records sha256 digests, never text)
+  #       command: sudo service postgresql start && pg_isready -t 30
+  #       when: before-start      # before-build | before-start (default) | after-ready
+  #     - name: db-migrate
+  #       command: pnpm prisma migrate deploy
+  #       timeoutMs: 300000       # per-step budget (default 300000)
+  #     - name: admin-user        # after-ready steps run against the running app
+  #       command: curl -sf -X POST http://127.0.0.1:3000/api/test/bootstrap-admin
+  #       when: after-ready
+  #   # Or point at a shared DB you do not control; provenance records it as unpinned.
+  #   # each name must also be declared in subject.env:
+  #   # external: [DATABASE_URL]
+  # clone:
+  #   keep: true                  # keep the sandbox after a failure to debug install or boot
+  # Alternative: drive a deployment you own (Vercel preview, staging) instead of a clone:
+  # source: app-url
+  # appUrl: https://your-preview.vercel.app/
+actor:
+  type: openai-computer-use
+  persona: synthetic-new-user
+  mission: >-
+    Explore the app as a brand-new user trying to complete its primary flow. Note anything
+    confusing. Stop when the flow completes or you are stuck.
+execution:
+  target: e2b-desktop
+  # 20 minutes, the longest this route allows, so a session ends when the participant finishes.
+  # The route clones, installs, builds and serves the subject before the participant starts, so
+  # the sandbox deadline is this budget plus 40 minutes of provisioning and teardown, and a sandbox
+  # lives at most 60 minutes. A value above 20 minutes fails the run before it starts; raise
+  # execution.desktop.sandboxTimeoutMs if you need more. The dollar caps limit spend.
+  timeoutMs: 1200000
+  desktop:
+    device: desktop             # mobile | small-mobile | narrow-mobile | tablet | desktop | wide
+    # browser: chrome            # default | chrome | chromium | firefox; concrete values fail closed
+    # Presets size the physical screen; Chrome's window width has a ~500px minimum.
+    # For mobile presets, opt into CSS viewport, touch, DPR and mobile user-agent emulation:
+    # fidelity: { mobileEmulation: true } # Chrome/Chromium only; desktop and tablet are unchanged
+    # The bundle records measured screen, page viewport and emulation fidelity separately.
+# policies:
+#   redactScreenshots: true       # blur saved frames (off by default: full fidelity for local use)
+#   allowPublicTargets: true      # required to drive a non-loopback app-url (a deployment you own)
+defaults:
+  open: true
