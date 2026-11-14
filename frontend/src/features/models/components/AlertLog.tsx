@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/PageState";
 import { Pagination } from "@/components/ui/Pagination";
 import { downloadCsv } from "@/lib/csv";
 import { formatDateTime } from "@/lib/format";
+import { ALERT_STATUS_LABELS, ALERT_TYPE_LABELS, alertDetail } from "@/lib/labels";
 
 import type { AlertStatus, ModelAlert } from "../types";
 
@@ -22,20 +23,28 @@ const statusVariant: Record<AlertStatus, BadgeVariant> = {
 const columns: ReadonlyArray<Column<ModelAlert>> = [
   {
     key: "occurredAt",
-    header: "Timestamp",
+    header: "Fecha y hora",
     render: (alert) => formatDateTime(alert.occurredAt),
   },
   {
     key: "modelId",
-    header: "Model ID",
+    header: "ID del modelo",
     render: (alert) => <span className="model-id">{alert.modelId}</span>,
   },
-  { key: "alertType", header: "Alert Type", render: (alert) => alert.alertType },
-  { key: "detail", header: "Details", render: (alert) => alert.detail },
+  {
+    key: "alertType",
+    header: "Tipo de alerta",
+    render: (alert) => ALERT_TYPE_LABELS[alert.alertType] ?? alert.alertType,
+  },
+  { key: "detail", header: "Detalle", render: (alert) => alertDetail(alert.detail) },
   {
     key: "status",
-    header: "Status",
-    render: (alert) => <Badge variant={statusVariant[alert.status]}>{alert.status}</Badge>,
+    header: "Estado",
+    render: (alert) => (
+      <Badge variant={statusVariant[alert.status]}>
+        {ALERT_STATUS_LABELS[alert.status] ?? alert.status}
+      </Badge>
+    ),
   },
 ];
 
@@ -55,13 +64,13 @@ export function AlertLog({ alerts }: AlertLogProps) {
 
   function exportCsv() {
     downloadCsv("sentinelai-model-alerts.csv", [
-      ["Timestamp", "Model ID", "Alert Type", "Details", "Status"],
+      ["Fecha y hora", "ID del modelo", "Tipo de alerta", "Detalle", "Estado"],
       ...alerts.map((alert) => [
         alert.occurredAt,
         alert.modelId,
-        alert.alertType,
-        alert.detail,
-        alert.status,
+        ALERT_TYPE_LABELS[alert.alertType] ?? alert.alertType,
+        alertDetail(alert.detail),
+        ALERT_STATUS_LABELS[alert.status] ?? alert.status,
       ]),
     ]);
   }
@@ -69,8 +78,8 @@ export function AlertLog({ alerts }: AlertLogProps) {
   return (
     <Card className="table-card alert-log">
       <ChartHeader
-        title="Alert Log"
-        subtitle="Recent model performance and data quality events"
+        title="Registro de alertas"
+        subtitle="Eventos recientes de rendimiento del modelo y calidad de datos"
         actions={
           <div className="table-actions">
             <label className="sr-only" htmlFor="alert-status-filter">
@@ -85,10 +94,12 @@ export function AlertLog({ alerts }: AlertLogProps) {
                 setPage(1);
               }}
             >
-              <option value="all">All statuses</option>
-              <option value="UNACKNOWLEDGED">Unacknowledged</option>
-              <option value="ACKNOWLEDGED">Acknowledged</option>
-              <option value="RESOLVED">Resolved</option>
+              <option value="all">Todos los estados</option>
+              {Object.entries(ALERT_STATUS_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
             </select>
             <button
               type="button"
@@ -96,7 +107,7 @@ export function AlertLog({ alerts }: AlertLogProps) {
               onClick={exportCsv}
               disabled={alerts.length === 0}
             >
-              Export report
+              Exportar reporte
             </button>
           </div>
         }
@@ -120,7 +131,7 @@ export function AlertLog({ alerts }: AlertLogProps) {
             pageCount={pageCount}
             totalItems={filteredAlerts.length}
             pageSize={PAGE_SIZE}
-            label="model alerts"
+            label="alertas del modelo"
             onPageChange={setPage}
           />
         </>

@@ -14,7 +14,7 @@ describe("HighRiskTable", () => {
     expect(screen.getByText("TXN-8492A")).toBeInTheDocument();
     expect(screen.queryByText("TXN-2F31B")).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Next" }));
+    await user.click(screen.getByRole("button", { name: "Siguiente" }));
 
     expect(screen.getByText("TXN-2F31B")).toBeInTheDocument();
     expect(screen.queryByText("TXN-8492A")).not.toBeInTheDocument();
@@ -24,6 +24,6 @@ describe("HighRiskTable", () => {
     render(<HighRiskTable transactions={[]} />);
 
     expect(screen.getByText("Sin transacciones de alto riesgo")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Export CSV" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Exportar CSV" })).toBeDisabled();
   });
 });

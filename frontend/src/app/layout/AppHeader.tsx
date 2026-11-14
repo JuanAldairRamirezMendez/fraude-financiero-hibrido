@@ -62,12 +62,7 @@ export function AppHeader({
         </form>
         <NavLink className="icon-button" to="/models" aria-label="Ver alertas del modelo">
           <Icon name="bell" size={19} />
-          <span className="notification-dot" aria-hidden="true" />
         </NavLink>
-        <div className="live-pill">
-          <span aria-hidden="true" />
-          Live monitoring
-        </div>
       </div>
     </header>
   );

@@ -34,7 +34,9 @@ def test_analyze_idempotent_replay_and_conflict(client, valid_payload):  # type:
 
 
 def test_case_lifecycle_and_human_feedback(client, valid_payload):  # type: ignore[no-untyped-def]
-    analyzed = client.post("/api/v1/analyze", json=valid_payload).json()
+    # Una transacción aprobada no abre caso solo; aquí el analista lo abre a mano.
+    approved = {**valid_payload, "transactionAmount": 100}
+    analyzed = client.post("/api/v1/analyze", json=approved).json()
     decision_id = analyzed["decisionId"]
 
     created = client.post(
@@ -65,7 +67,8 @@ def test_case_lifecycle_and_human_feedback(client, valid_payload):  # type: igno
 
 
 def test_case_requires_verdict_to_resolve(client, valid_payload):  # type: ignore[no-untyped-def]
-    decision_id = client.post("/api/v1/analyze", json=valid_payload).json()["decisionId"]
+    approved = {**valid_payload, "transactionAmount": 100}
+    decision_id = client.post("/api/v1/analyze", json=approved).json()["decisionId"]
     case = client.post("/api/v1/cases", json={"decisionId": decision_id}).json()
     response = client.patch(f"/api/v1/cases/{case['id']}", json={"status": "resolved"})
     assert response.status_code == 409
@@ -171,3 +174,77 @@ def test_snapshot_filters_object() -> None:
 
 def test_risk_level_matches_api_contract() -> None:
     assert risk_level(75) == "high"
+
+
+def test_analyze_accepts_real_dataset_ranges(client, valid_payload):  # type: ignore[no-untyped-def]
+    """The raw dataset reaches customer_risk_score=7.72 and account_age_days=6307."""
+    payload = {**valid_payload, "customerRiskScore": 7.72, "accountAgeDays": 6307}
+    response = client.post("/api/v1/analyze", json=payload)
+    assert response.status_code == 200
+
+
+def test_analyze_rejects_values_beyond_widened_limits(client, valid_payload):  # type: ignore[no-untyped-def]
+    for field, value in [("customerRiskScore", 10.5), ("accountAgeDays", 20_001)]:
+        response = client.post("/api/v1/analyze", json={**valid_payload, field: value})
+        assert response.status_code == 422, field
+
+
+def test_policy_approves_or_blocks_and_opens_case(client, valid_payload):  # type: ignore[no-untyped-def]
+    # La analítica falsa devuelve 0.91 para montos >= 3000 y 0.12 para el resto.
+    approved = client.post("/api/v1/analyze", json={**valid_payload, "transactionAmount": 100}).json()
+    assert approved["decision"] == "approve"
+    assert approved["level"] == "low"
+    assert approved["blocked"] is False
+    assert approved["caseId"] is None
+
+    blocked = client.post("/api/v1/analyze", json=valid_payload).json()
+    assert blocked["decision"] == "block"
+    assert blocked["level"] == "high"
+    assert blocked["blocked"] is True
+    assert blocked["reviewThreshold"] == blocked["blockThreshold"] == 0.5
+    assert blocked["caseNumber"].startswith("CASE-")
+
+
+def test_optional_block_threshold_enables_review_band(client, valid_payload):  # type: ignore[no-untyped-def]
+    review = client.post(
+        "/api/v1/analyze", json={**valid_payload, "blockThreshold": 0.95}
+    ).json()
+    assert review["decision"] == "review"
+    assert review["level"] == "medium"
+    assert review["blocked"] is True
+    assert review["reviewThreshold"] == 0.5
+    assert review["blockThreshold"] == 0.95
+    assert review["caseNumber"].startswith("CASE-")
+
+
+def test_blocked_decision_opens_case_with_model_context(client, valid_payload):  # type: ignore[no-untyped-def]
+    review = client.post("/api/v1/analyze", json=valid_payload).json()
+
+    case = client.get(f"/api/v1/cases/{review['caseId']}").json()
+    assert case["status"] == "new"
+    assert case["decisionId"] == review["decisionId"]
+    assert case["decision"]["decision"] == "block"
+    assert case["decision"]["score"] == 91
+    assert case["decision"]["transaction"]["transactionAmount"] == 9000
+    assert "decisionThreshold" not in case["decision"]["transaction"]
+    assert case["decision"]["shap"][0]["feature"] == "transaction_amount"
+
+    listed = client.get("/api/v1/cases").json()
+    assert [item["id"] for item in listed["items"]] == [review["caseId"]]
+
+    duplicate = client.post("/api/v1/cases", json={"decisionId": review["decisionId"]})
+    assert duplicate.status_code == 409
+
+
+def test_analyze_rejects_block_threshold_below_review(client, valid_payload):  # type: ignore[no-untyped-def]
+    response = client.post(
+        "/api/v1/analyze",
+        json={**valid_payload, "decisionThreshold": 0.6, "blockThreshold": 0.4},
+    )
+    assert response.status_code == 422
+
+
+def test_me_returns_local_user_when_auth_is_disabled(client):  # type: ignore[no-untyped-def]
+    status = client.get("/api/v1/auth/me").json()
+    assert status["authenticated"] is True
+    assert status["user"]["username"] == "analista"

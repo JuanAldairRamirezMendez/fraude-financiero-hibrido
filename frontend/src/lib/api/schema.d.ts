@@ -291,6 +291,8 @@ export interface components {
              * @default 0.5
              */
             decisionThreshold: number;
+            /** Blockthreshold */
+            blockThreshold?: number | null;
         };
         /** AnalyzeResponse */
         AnalyzeResponse: {
@@ -323,6 +325,26 @@ export interface components {
              * @default false
              */
             idempotentReplay: boolean;
+            /**
+             * Decision
+             * @default approve
+             * @enum {string}
+             */
+            decision: "approve" | "review" | "block";
+            /**
+             * Reviewthreshold
+             * @default 0.5
+             */
+            reviewThreshold: number;
+            /**
+             * Blockthreshold
+             * @default 0.5
+             */
+            blockThreshold: number;
+            /** Caseid */
+            caseId?: string | null;
+            /** Casenumber */
+            caseNumber?: string | null;
         };
         /** AuthResponse */
         AuthResponse: {
@@ -354,6 +376,34 @@ export interface components {
             decisionId: string;
             /** Assignedto */
             assignedTo?: string | null;
+        };
+        /**
+         * CaseDecision
+         * @description Resumen de la decisión del modelo que originó el caso.
+         */
+        CaseDecision: {
+            /** Probability */
+            probability: number;
+            /** Score */
+            score: number;
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "low" | "medium" | "high";
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "approve" | "review" | "block";
+            /** Modelversion */
+            modelVersion: string;
+            /** Transaction */
+            transaction: {
+                [key: string]: number | string;
+            };
+            /** Shap */
+            shap: components["schemas"]["ShapContribution"][];
         };
         /** CaseListResponse */
         CaseListResponse: {
@@ -398,6 +448,7 @@ export interface components {
             resolvedAt: string | null;
             /** Notes */
             notes: components["schemas"]["CaseNote"][];
+            decision?: components["schemas"]["CaseDecision"] | null;
         };
         /** CaseUpdateRequest */
         CaseUpdateRequest: {
@@ -801,6 +852,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
                 };
+            };
+            /** @description Application dependencies are unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

@@ -22,6 +22,9 @@ export interface TransactionFormValues {
   decisionThreshold: string;
 }
 
+/** Umbral calibrado del modelo: desde aquí la transacción se bloquea y pasa al analista. */
+export const BLOCK_THRESHOLD = "0.247";
+
 export type FieldErrors = Partial<Record<keyof TransactionFormValues, string>>;
 
 export const INITIAL_FORM_VALUES: TransactionFormValues = {
@@ -43,7 +46,7 @@ export const INITIAL_FORM_VALUES: TransactionFormValues = {
   avgTransactionAmount30dCustomer: "651.035",
   transactionVelocity1h: "0",
   transactionVelocity24h: "3",
-  decisionThreshold: "0.5",
+  decisionThreshold: BLOCK_THRESHOLD,
 };
 
 interface ValidationResult {
@@ -54,13 +57,13 @@ interface ValidationResult {
 const NUMERIC_FIELDS: Array<[keyof TransactionFormValues, number, number, boolean]> = [
   ["transactionHour", 0, 23, true],
   ["transactionDayOfWeek", 0, 6, true],
-  ["accountAgeDays", 0, 3650, true],
+  ["accountAgeDays", 0, 20_000, true],
   ["previousChargebacks", 0, 50, true],
   ["isInternational", 0, 1, true],
   ["isHighRiskMerchantCategory", 0, 1, true],
   ["isWeekend", 0, 1, true],
   ["customerTotalTransactions30d", 0, 500, true],
-  ["customerRiskScore", 0, 1, false],
+  ["customerRiskScore", 0, 10, false],
   ["transactionAmount", 0.01, 1_000_000, false],
   ["avgTransactionAmount30dCustomer", 0, 1_000_000, false],
   ["transactionVelocity1h", 0, 100, true],
@@ -89,7 +92,8 @@ export function validateTransactionForm(values: TransactionFormValues): Validati
       value > maximum ||
       (integer && !Number.isInteger(value))
     ) {
-      errors[field] = `Ingresa un valor entre ${minimum} y ${maximum}${integer ? " sin decimales" : ""}.`;
+      errors[field] =
+        `Ingresa un valor entre ${minimum} y ${maximum}${integer ? " sin decimales" : ""}.`;
     }
   }
 
@@ -120,7 +124,9 @@ export function validateTransactionForm(values: TransactionFormValues): Validati
       avgTransactionAmount30dCustomer: parsed.avgTransactionAmount30dCustomer,
       transactionVelocity1h: parsed.transactionVelocity1h,
       transactionVelocity24h: parsed.transactionVelocity24h,
+      // Un solo umbral: aprobar o bloquear (sin franja intermedia de revisión).
       decisionThreshold: parsed.decisionThreshold,
+      blockThreshold: parsed.decisionThreshold,
     },
   };
 }

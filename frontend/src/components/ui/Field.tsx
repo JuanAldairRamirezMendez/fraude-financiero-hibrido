@@ -6,6 +6,8 @@ interface FieldProps {
   type?: "text" | "number";
   suffix?: string;
   options?: readonly string[];
+  /** Texto visible para cada opción; el valor enviado sigue siendo la clave. */
+  optionLabels?: Readonly<Record<string, string>>;
   error?: string;
   min?: number;
   max?: number;
@@ -20,6 +22,7 @@ export function Field({
   type = "text",
   suffix,
   options,
+  optionLabels,
   error,
   min,
   max,
@@ -41,7 +44,7 @@ export function Field({
           >
             {options.map((option) => (
               <option key={option} value={option}>
-                {option}
+                {optionLabels?.[option] ?? option}
               </option>
             ))}
           </select>

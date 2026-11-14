@@ -6,10 +6,14 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 from app.core.errors import ConflictError, ServiceUnavailableError
-from app.domain.transaction import Assessment
+from app.domain.transaction import LEVEL_BY_ACTION, Assessment, decide
 from app.repositories.protocols import FraudRepository, PersistedDecision
 from app.schemas.api import AnalyzeRequest, AnalyzeResponse, ShapContribution, TopDriver
+from app.services.case_service import new_case
 from app.services.inference_service import InferenceService
+
+# Autor registrado cuando el sistema abre un caso por su cuenta.
+SYSTEM_ACTOR = "sentinelai"
 
 
 def _response_from_assessment(assessment: Assessment) -> AnalyzeResponse:
@@ -76,13 +80,33 @@ class AnalyzeService:
                         "La Idempotency-Key ya fue utilizada con otra carga útil.",
                         {"idempotencyKey": idempotency_key},
                     )
-                replayed = AnalyzeResponse.model_validate(existing.response_payload)
+                stored = dict(existing.response_payload)
+                # Respuestas guardadas antes de este cambio no traen la acción tomada.
+                if "decision" not in stored:
+                    stored["decision"] = "block" if stored.get("blocked") else "approve"
+                    stored["level"] = LEVEL_BY_ACTION[stored["decision"]]
+                replayed = AnalyzeResponse.model_validate(stored)
                 replayed.idempotent_replay = True
                 return replayed
 
         assessment = self._inference.analyze(request)
         response = _response_from_assessment(assessment)
         response.calibrated_threshold = self._calibrated_threshold
+
+        # El nivel mostrado siempre coincide con la acción tomada.
+        block_threshold = request.effective_block_threshold
+        action = decide(assessment.probability, request.decision_threshold, block_threshold)
+        response.decision = action
+        response.level = LEVEL_BY_ACTION[action]
+        response.review_threshold = request.decision_threshold
+        response.block_threshold = block_threshold
+
+        # Toda transacción que no se aprueba abre un caso para que un analista la vea.
+        case = new_case(assessment.decision_id) if action != "approve" else None
+        if case is not None:
+            response.case_id = case.id
+            response.case_number = case.case_number
+
         stored = response.model_dump(by_alias=True, mode="json")
 
         decision = PersistedDecision(
@@ -90,7 +114,7 @@ class AnalyzeService:
             decision_id=assessment.decision_id,
             probability=assessment.probability,
             score=assessment.score,
-            level=assessment.level,
+            level=response.level,
             blocked=assessment.blocked,
             transaction_amount=request.transaction_amount,
             model_version=assessment.model_version,
@@ -109,4 +133,6 @@ class AnalyzeService:
             )
         else:
             self._repository.save_decision(decision)
+        if case is not None:
+            self._repository.create_case(case, SYSTEM_ACTOR)
         return response

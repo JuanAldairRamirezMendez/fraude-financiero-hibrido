@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic.alias_generators import to_camel
 
 RiskLevel = Literal["low", "medium", "high"]
@@ -12,6 +12,7 @@ AlertStatus = Literal["UNACKNOWLEDGED", "ACKNOWLEDGED", "RESOLVED"]
 AlertType = Literal["Feature drift", "Data quality", "Prediction drift", "Performance"]
 CaseStatus = Literal["new", "in_review", "escalated", "resolved"]
 CaseVerdict = Literal["confirmed_fraud", "false_positive", "inconclusive"]
+DecisionAction = Literal["approve", "review", "block"]
 
 
 class ApiModel(BaseModel):
@@ -25,7 +26,7 @@ class ApiModel(BaseModel):
 class AnalyzeRequest(ApiModel):
     transaction_hour: int = Field(ge=0, le=23)
     transaction_day_of_week: int = Field(ge=0, le=6)
-    account_age_days: int = Field(ge=0, le=3650)
+    account_age_days: int = Field(ge=0, le=20_000)
     previous_chargebacks: int = Field(ge=0, le=50)
     merchant_category: str = Field(min_length=1, max_length=64)
     transaction_country: str = Field(min_length=1, max_length=64)
@@ -38,14 +39,28 @@ class AnalyzeRequest(ApiModel):
     customer_total_transactions_30d: int = Field(
         ge=0, le=500, alias="customerTotalTransactions30d"
     )
-    customer_risk_score: float = Field(ge=0, le=1)
+    customer_risk_score: float = Field(ge=0, le=10)
     transaction_amount: float = Field(gt=0, le=1_000_000)
     avg_transaction_amount_30d_customer: float = Field(
         ge=0, le=1_000_000, alias="avgTransactionAmount30dCustomer"
     )
     transaction_velocity_1h: int = Field(ge=0, le=100, alias="transactionVelocity1h")
     transaction_velocity_24h: int = Field(ge=0, le=500, alias="transactionVelocity24h")
+    # Desde decision_threshold la transacción se bloquea y pasa a la cola del analista.
+    # block_threshold es opcional: si se envía uno mayor, la franja intermedia queda
+    # retenida para revisión (política de tres niveles, desactivada por defecto).
     decision_threshold: float = Field(default=0.5, ge=0, le=1)
+    block_threshold: float | None = Field(default=None, ge=0, le=1)
+
+    @property
+    def effective_block_threshold(self) -> float:
+        return self.decision_threshold if self.block_threshold is None else self.block_threshold
+
+    @model_validator(mode="after")
+    def thresholds_in_order(self) -> AnalyzeRequest:
+        if self.block_threshold is not None and self.block_threshold < self.decision_threshold:
+            raise ValueError("blockThreshold debe ser mayor o igual que decisionThreshold.")
+        return self
 
     @field_validator(
         "merchant_category",
@@ -105,6 +120,11 @@ class AnalyzeResponse(ApiModel):
     model_version: str
     calibrated_threshold: float = Field(ge=0, le=1)
     idempotent_replay: bool = False
+    decision: DecisionAction = "approve"
+    review_threshold: float = Field(default=0.5, ge=0, le=1)
+    block_threshold: float = Field(default=0.5, ge=0, le=1)
+    case_id: str | None = None
+    case_number: str | None = None
 
 
 class FieldMetadata(ApiModel):
@@ -287,6 +307,18 @@ class CaseNote(ApiModel):
     created_at: str
 
 
+class CaseDecision(ApiModel):
+    """Resumen de la decisión del modelo que originó el caso."""
+
+    probability: float = Field(ge=0, le=1)
+    score: int = Field(ge=0, le=100)
+    level: RiskLevel
+    decision: DecisionAction
+    model_version: str
+    transaction: dict[str, float | int | str]
+    shap: list[ShapContribution]
+
+
 class CaseResponse(ApiModel):
     id: str
     case_number: str
@@ -299,6 +331,7 @@ class CaseResponse(ApiModel):
     updated_at: str
     resolved_at: str | None
     notes: list[CaseNote]
+    decision: CaseDecision | None = None
 
 
 class CaseListResponse(ApiModel):

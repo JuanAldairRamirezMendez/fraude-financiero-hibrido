@@ -15,6 +15,7 @@ Outputs (both under ``backend/artifacts``):
 from __future__ import annotations
 
 import json
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -25,7 +26,10 @@ from sklearn.model_selection import train_test_split
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_PATH = PROJECT_ROOT / "data" / "raw" / "financial_fraud_risk_raw.parquet"
-MODEL_PATH = PROJECT_ROOT / "models_saved" / "xgboost_tier2_isotonic.pkl"
+# MODEL_PATH permite usar la copia convertida del modelo en Windows.
+MODEL_PATH = Path(
+    os.environ.get("MODEL_PATH", PROJECT_ROOT / "models_saved" / "xgboost_tier2_isotonic.pkl")
+)
 ARTIFACTS_DIR = PROJECT_ROOT / "backend" / "artifacts"
 PREPROCESSOR_PATH = ARTIFACTS_DIR / "preprocessor.joblib"
 CONTRACT_PATH = ARTIFACTS_DIR / "feature_contract.json"
@@ -58,12 +62,13 @@ def population_stability_index(
     return float(np.sum((actual_share - expected_share) * np.log(actual_share / expected_share)))
 
 
-def score_to_status(score: float) -> str:
-    if score >= 80:
-        return "Flagged"
-    if score >= 50:
-        return "Review"
-    return "Approved"
+def probability_to_status(probability: float, threshold: float) -> str:
+    """Misma política que el Analizador: desde el umbral calibrado se bloquea.
+
+    ``Flagged`` significa bloqueada; ``Review`` se conserva en la API por
+    compatibilidad, pero la política de un solo umbral no lo produce.
+    """
+    return "Flagged" if probability >= threshold else "Approved"
 
 
 def main() -> None:
@@ -85,6 +90,7 @@ def main() -> None:
         stratify=raw[contract["labelColumn"]],
     )
 
+    threshold = float(model_metadata["calibratedThreshold"])
     transformed = preprocessor.transform(raw[raw_features])
     probabilities = model.predict_proba(transformed)[:, 1]
     scores = np.clip(np.rint(probabilities * 100), 1, 99).astype(int)
@@ -102,7 +108,7 @@ def main() -> None:
             "transactionType": raw["transaction_type"].astype(str),
             "deviceType": raw["device_type"].astype(str),
             "score": scores,
-            "status": [score_to_status(score) for score in scores],
+            "status": [probability_to_status(value, threshold) for value in probabilities],
             "riskLabel": raw[contract["labelColumn"]].astype(int),
             "probability": probabilities.round(6),
         }
@@ -127,8 +133,7 @@ def main() -> None:
     status_counts = transactions["status"].value_counts().to_dict()
     fraud_rate = float(transactions["riskLabel"].mean())
     flagged = int(status_counts.get("Flagged", 0))
-    review = int(status_counts.get("Review", 0))
-    pending_alerts = flagged + review
+    production_f1 = float(model_metadata["metrics"]["isotonicCalibrationF1"])
 
     kpis = [
         {
@@ -158,16 +163,18 @@ def main() -> None:
         {
             "id": "f1-score",
             "label": "Model F1-score",
-            "value": f"{model_metadata['metrics']['tier2F1']:.3f}",
-            "trend": "Tier 2 XGBoost holdout",
-            "dataPoints": [0.70, 0.71, 0.72, 0.72, 0.73, 0.73, 0.734, 0.734],
+            # F1 del modelo calibrado que decide en producción (umbral calibrado, 20 % de prueba).
+            "value": f"{production_f1:.3f}",
+            "trend": f"Calibrated model · threshold {threshold:.3f} · test set",
+            "dataPoints": [round(production_f1, 6)] * 8,
         },
         {
+            # El frontend lo reemplaza por los casos pendientes reales cuando hay backend.
             "id": "pending-alerts",
             "label": "Pending alerts",
-            "value": f"{pending_alerts:,}",
-            "trend": f"{flagged:,} flagged · {review:,} review",
-            "dataPoints": [review, flagged, review, flagged, review, flagged, review, pending_alerts],
+            "value": f"{flagged:,}",
+            "trend": f"{flagged:,} blocked at threshold {threshold:.3f}",
+            "dataPoints": [flagged] * 8,
         },
     ]
 

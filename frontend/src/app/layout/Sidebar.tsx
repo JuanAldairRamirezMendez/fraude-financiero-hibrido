@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 
 import { Icon } from "@/components/ui/Icon";
+import { isPending, useCasesQuery } from "@/features/cases/api";
 
 import { useAuth } from "../auth/AuthContext";
 import { NAV_ITEMS } from "./navigation";
@@ -14,6 +15,8 @@ interface SidebarProps {
 export function Sidebar({ open, onNavigate }: SidebarProps) {
   const { user, logout } = useAuth();
   const navRef = useRef<HTMLElement>(null);
+  const cases = useCasesQuery(15_000);
+  const pendingCases = cases.data?.items.filter(isPending).length ?? 0;
 
   useEffect(() => {
     if (!open) return;
@@ -32,7 +35,7 @@ export function Sidebar({ open, onNavigate }: SidebarProps) {
       </div>
 
       <nav ref={navRef} aria-label="Navegación principal">
-        <div className="nav-label">Workspace</div>
+        <div className="nav-label">Espacio de trabajo</div>
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}
@@ -43,17 +46,14 @@ export function Sidebar({ open, onNavigate }: SidebarProps) {
           >
             <Icon name={item.icon} />
             <span>{item.label}</span>
+            {item.showPendingCases && pendingCases > 0 && (
+              <span className="nav-badge" aria-label={`${pendingCases} casos pendientes`}>
+                {pendingCases}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>
-
-      <div className="sidebar-status">
-        <span className="status-dot" aria-hidden="true" />
-        <div>
-          <strong>Operación conectada</strong>
-          <span>API y modelo disponibles</span>
-        </div>
-      </div>
 
       <button className="profile" type="button" onClick={() => void logout()}>
         <span className="avatar" aria-hidden="true">

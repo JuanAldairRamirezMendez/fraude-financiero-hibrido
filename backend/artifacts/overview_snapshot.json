@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-09T19:48:54.066599+00:00",
+  "generatedAt": "2026-11-14T21:18:17.638083+00:00",
   "windowLabel": "Dataset snapshot · 100,000 rows",
   "totalTransactions": 100000,
   "kpis": [
@@ -38,33 +38,33 @@
     {
       "id": "f1-score",
       "label": "Model F1-score",
-      "value": "0.734",
-      "trend": "Tier 2 XGBoost holdout",
+      "value": "0.726",
+      "trend": "Calibrated model · threshold 0.247 · test set",
       "dataPoints": [
-        0.7,
-        0.71,
-        0.72,
-        0.72,
-        0.73,
-        0.73,
-        0.734,
-        0.734
+        0.726027,
+        0.726027,
+        0.726027,
+        0.726027,
+        0.726027,
+        0.726027,
+        0.726027,
+        0.726027
       ]
     },
     {
       "id": "pending-alerts",
       "label": "Pending alerts",
-      "value": "957",
-      "trend": "654 flagged · 303 review",
+      "value": "1,502",
+      "trend": "1,502 blocked at threshold 0.247",
       "dataPoints": [
-        303,
-        654,
-        303,
-        654,
-        303,
-        654,
-        303,
-        957
+        1502,
+        1502,
+        1502,
+        1502,
+        1502,
+        1502,
+        1502,
+        1502
       ]
     }
   ],
@@ -75,14 +75,13 @@
     "velocityPsi": 2.1e-05
   },
   "statusCounts": {
-    "Approved": 99043,
-    "Flagged": 654,
-    "Review": 303
+    "Approved": 98498,
+    "Flagged": 1502
   },
   "alerts": [
     {
       "id": "ALT-SNAPSHOT-AMOUNT",
-      "occurredAt": "2026-11-09T19:48:54.066599+00:00",
+      "occurredAt": "2026-11-14T21:18:17.638083+00:00",
       "modelId": "XGB-TRANSACTION-TIER2",
       "alertType": "Feature drift",
       "detail": "Transaction amount PSI 0.000 remains within the 0.20 warning threshold.",
@@ -90,7 +89,7 @@
     },
     {
       "id": "ALT-SNAPSHOT-VELOCITY",
-      "occurredAt": "2026-11-09T19:48:54.066599+00:00",
+      "occurredAt": "2026-11-14T21:18:17.638083+00:00",
       "modelId": "XGB-TRANSACTION-TIER2",
       "alertType": "Feature drift",
       "detail": "24h transaction velocity PSI 0.000 remains within the configured threshold.",
@@ -98,7 +97,7 @@
     },
     {
       "id": "ALT-SNAPSHOT-ARTIFACT",
-      "occurredAt": "2026-11-09T19:48:54.066599+00:00",
+      "occurredAt": "2026-11-14T21:18:17.638083+00:00",
       "modelId": "XGB-TRANSACTION-TIER2",
       "alertType": "Performance",
       "detail": "Artifact xgboost-tier2-isotonic-f88d84b82069 loaded with 46 features.",
