@@ -17,31 +17,31 @@ export function StatusBanner({ health }: StatusBannerProps) {
         <Icon name={stable ? "bell" : "alert"} size={24} />
       </span>
       <div>
-        <h2 className="status-title">Model Status: {stable ? "Stable" : "Degraded"}</h2>
+        <h2 className="status-title">Estado del modelo: {stable ? "Estable" : "Degradado"}</h2>
         <p>
           {stable
-            ? "All core models are performing within their configured thresholds."
-            : "One or more models require attention."}
+            ? "Todos los modelos principales funcionan dentro de sus umbrales configurados."
+            : "Uno o más modelos requieren atención."}
         </p>
       </div>
       <div className="status-metrics">
         <span>
-          <strong>{formatPercent(health.uptimePct)}</strong>Uptime
+          <strong>{formatPercent(health.uptimePct)}</strong>Disponibilidad
         </span>
         <span>
-          <strong>{health.avgLatencyMs}ms</strong>Avg. latency
+          <strong>{health.avgLatencyMs} ms</strong>Latencia media
         </span>
         <span>
-          <strong>{health.criticalIssues}</strong>Critical issues
+          <strong>{health.criticalIssues}</strong>Incidencias críticas
         </span>
       </div>
       <Badge variant={stable ? "success" : "warning"}>
         {stable ? (
           <>
-            <Icon name="check" size={13} /> Healthy
+            <Icon name="check" size={13} /> Saludable
           </>
         ) : (
-          "Attention"
+          "Atención"
         )}
       </Badge>
     </section>

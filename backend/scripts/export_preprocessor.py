@@ -89,7 +89,7 @@ FIELD_SPECS: dict[str, dict[str, object]] = {
         "group": "Account",
         "kind": "integer",
         "min": 0,
-        "max": 3650,
+        "max": 20_000,
         "step": 1,
     },
     "previous_chargebacks": {
@@ -140,7 +140,7 @@ FIELD_SPECS: dict[str, dict[str, object]] = {
         "group": "Customer",
         "kind": "number",
         "min": 0,
-        "max": 1,
+        "max": 10,
         "step": 0.01,
     },
     "transaction_amount": {

@@ -10,6 +10,8 @@ from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
+LOCAL_USER = AuthUser(id="local", username="analista", role="admin")
+
 
 def _set_cookies(response: Response, request: Request, access_token: str, refresh_token: str) -> None:
     settings = request.app.state.settings
@@ -97,7 +99,13 @@ def logout(
 
 
 @router.get("/me", response_model=AuthStatusResponse, summary="Get the current user")
-def me(user: UserPrincipal | None = Depends(get_current_user)) -> AuthStatusResponse:
+def me(
+    request: Request, user: UserPrincipal | None = Depends(get_current_user)
+) -> AuthStatusResponse:
+    if not request.app.state.settings.auth_enabled:
+        # Sin autenticación (desarrollo local, E2E) la API está abierta: la interfaz entra
+        # directamente con un usuario local en vez de quedarse en la pantalla de login.
+        return AuthStatusResponse(authenticated=True, user=LOCAL_USER)
     if user is None:
         return AuthStatusResponse(authenticated=False)
     return AuthStatusResponse(

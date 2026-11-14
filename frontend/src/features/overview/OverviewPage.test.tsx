@@ -27,7 +27,7 @@ describe("OverviewPage", () => {
     expect(
       await screen.findByText("Olivia Martin", undefined, { timeout: 3000 }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Total transactions")).toBeInTheDocument();
+    expect(screen.getByText("Transacciones totales")).toBeInTheDocument();
   });
 
   it("filtra la tabla por el término de búsqueda", async () => {
@@ -37,8 +37,8 @@ describe("OverviewPage", () => {
       await screen.findByText("Olivia Martin", undefined, { timeout: 3000 }),
     ).toBeInTheDocument();
     expect(screen.queryByText("Noah Williams")).not.toBeInTheDocument();
-    expect(screen.getByText(/Showing/, { selector: ".chart-toolbar > span" })).toHaveTextContent(
-      "Showing 1 of 1,428,391 processed transactions",
+    expect(screen.getByText(/Mostrando/, { selector: ".chart-toolbar > span" })).toHaveTextContent(
+      "Mostrando 1 de 1,428,391 transacciones procesadas",
     );
   });
 

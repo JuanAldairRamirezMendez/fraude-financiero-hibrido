@@ -9,7 +9,7 @@ export const mockModels: ModelsData = {
     psi: 0.14,
     driftShiftPct: 6.2,
     psiThreshold: 0.2,
-    windowLabel: "May 14–Jun 12, 2025",
+    windowLabel: "14 may – 12 jun 2025",
   },
   alerts: [
     {
@@ -17,7 +17,7 @@ export const mockModels: ModelsData = {
       occurredAt: "2025-06-12T14:24:17Z",
       modelId: "XGB-TRANSACTION-04",
       alertType: "Feature drift",
-      detail: "Transaction amount PSI exceeded 0.20",
+      detail: "El PSI del monto de transacción superó 0.20",
       status: "UNACKNOWLEDGED",
     },
     {
@@ -25,7 +25,7 @@ export const mockModels: ModelsData = {
       occurredAt: "2025-06-12T11:08:52Z",
       modelId: "LSTM-VELOCITY-02",
       alertType: "Data quality",
-      detail: "Missing IP reputation values above 2%",
+      detail: "Valores faltantes de reputación IP por encima del 2%",
       status: "ACKNOWLEDGED",
     },
     {
@@ -33,7 +33,7 @@ export const mockModels: ModelsData = {
       occurredAt: "2025-06-11T22:41:06Z",
       modelId: "RF-ACCOUNT-07",
       alertType: "Prediction drift",
-      detail: "Positive prediction rate increased 14%",
+      detail: "La tasa de predicciones positivas aumentó un 14%",
       status: "ACKNOWLEDGED",
     },
     {
@@ -41,7 +41,7 @@ export const mockModels: ModelsData = {
       occurredAt: "2025-06-11T16:12:39Z",
       modelId: "XGB-TRANSACTION-04",
       alertType: "Feature drift",
-      detail: "Merchant category distribution shifted",
+      detail: "Cambió la distribución de categorías de comercio",
       status: "RESOLVED",
     },
     {
@@ -49,7 +49,7 @@ export const mockModels: ModelsData = {
       occurredAt: "2025-06-10T09:36:14Z",
       modelId: "ENSEMBLE-CORE-01",
       alertType: "Performance",
-      detail: "Precision temporarily below 0.90",
+      detail: "Precisión temporalmente por debajo de 0.90",
       status: "RESOLVED",
     },
     {
@@ -57,7 +57,7 @@ export const mockModels: ModelsData = {
       occurredAt: "2025-06-09T18:07:41Z",
       modelId: "CAT-TRANSACTION-03",
       alertType: "Feature drift",
-      detail: "Account age distribution shifted",
+      detail: "Cambió la distribución de antigüedad de cuentas",
       status: "RESOLVED",
     },
     {
@@ -65,7 +65,7 @@ export const mockModels: ModelsData = {
       occurredAt: "2025-06-09T10:22:05Z",
       modelId: "XGB-TRANSACTION-04",
       alertType: "Data quality",
-      detail: "Duplicate transaction IDs above 1%",
+      detail: "IDs de transacción duplicados por encima del 1%",
       status: "ACKNOWLEDGED",
     },
     {
@@ -73,7 +73,7 @@ export const mockModels: ModelsData = {
       occurredAt: "2025-06-08T21:55:30Z",
       modelId: "ENSEMBLE-CORE-01",
       alertType: "Prediction drift",
-      detail: "Fraud probability mean shifted +0.08",
+      detail: "La probabilidad media de fraude se desplazó +0.08",
       status: "UNACKNOWLEDGED",
     },
     {
@@ -81,7 +81,7 @@ export const mockModels: ModelsData = {
       occurredAt: "2025-06-08T13:18:12Z",
       modelId: "RF-ACCOUNT-07",
       alertType: "Performance",
-      detail: "Recall dropped below the configured floor",
+      detail: "El recall cayó por debajo del mínimo configurado",
       status: "ACKNOWLEDGED",
     },
     {
@@ -89,7 +89,7 @@ export const mockModels: ModelsData = {
       occurredAt: "2025-06-07T08:44:59Z",
       modelId: "LSTM-VELOCITY-02",
       alertType: "Data quality",
-      detail: "Transaction velocity outliers above 3σ",
+      detail: "Valores atípicos de velocidad por encima de 3σ",
       status: "RESOLVED",
     },
     {
@@ -97,7 +97,7 @@ export const mockModels: ModelsData = {
       occurredAt: "2025-06-06T17:31:23Z",
       modelId: "CAT-TRANSACTION-03",
       alertType: "Feature drift",
-      detail: "Merchant risk score distribution shifted",
+      detail: "Cambió la distribución del riesgo de comercios",
       status: "RESOLVED",
     },
     {
@@ -105,7 +105,7 @@ export const mockModels: ModelsData = {
       occurredAt: "2025-06-05T12:09:48Z",
       modelId: "XGB-TRANSACTION-04",
       alertType: "Performance",
-      detail: "F1-score below the target for 30 minutes",
+      detail: "F1-Score por debajo del objetivo durante 30 minutos",
       status: "ACKNOWLEDGED",
     },
   ],

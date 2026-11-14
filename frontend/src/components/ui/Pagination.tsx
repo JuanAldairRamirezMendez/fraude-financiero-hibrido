@@ -24,11 +24,11 @@ export function Pagination({
   return (
     <nav className="pagination" aria-label={`Paginación de ${label}`}>
       <span>
-        Showing{" "}
+        Mostrando{" "}
         <strong>
           {start}–{end}
         </strong>{" "}
-        of <strong>{totalItems}</strong> {label}
+        de <strong>{totalItems}</strong> {label}
       </span>
       <div>
         <button
@@ -36,7 +36,7 @@ export function Pagination({
           onClick={() => onPageChange(Math.max(1, page - 1))}
           disabled={page === 1}
         >
-          Previous
+          Anterior
         </button>
         {pages.map((number) => (
           <button
@@ -55,7 +55,7 @@ export function Pagination({
           onClick={() => onPageChange(Math.min(pageCount, page + 1))}
           disabled={page === pageCount}
         >
-          Next
+          Siguiente
         </button>
       </div>
     </nav>

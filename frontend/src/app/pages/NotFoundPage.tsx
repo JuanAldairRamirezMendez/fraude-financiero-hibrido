@@ -9,7 +9,7 @@ export function NotFoundPage() {
       message="La ruta que buscas no existe o fue movida."
       action={
         <Link className="button button-outline" to="/">
-          Ir al overview
+          Ir al resumen
         </Link>
       }
     />

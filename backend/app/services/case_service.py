@@ -4,11 +4,58 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 from app.core.errors import ConflictError, NotFoundError
-from app.repositories.protocols import FraudRepository, PersistedCase
-from app.schemas.api import CaseCreateRequest, CaseResponse, CaseUpdateRequest
+from app.domain.transaction import LEVEL_BY_ACTION
+from app.repositories.protocols import FraudRepository, PersistedCase, PersistedDecision
+from app.schemas.api import (
+    CaseCreateRequest,
+    CaseDecision,
+    CaseResponse,
+    CaseUpdateRequest,
+    ShapContribution,
+)
+
+THRESHOLD_FIELDS = ("decisionThreshold", "blockThreshold")
 
 
-def _response(case: PersistedCase) -> CaseResponse:
+def new_case(decision_id: str, assigned_to: str | None = None) -> PersistedCase:
+    now = datetime.now(UTC)
+    return PersistedCase(
+        id=str(uuid4()),
+        case_number=f"CASE-{uuid4().hex[:12].upper()}",
+        decision_id=decision_id,
+        status="new",
+        assigned_to=assigned_to,
+        verdict=None,
+        feedback_comment=None,
+        created_at=now,
+        updated_at=now,
+        resolved_at=None,
+        notes=(),
+    )
+
+
+def _decision_summary(decision: PersistedDecision | None) -> CaseDecision | None:
+    if decision is None:
+        return None
+    stored = decision.response_payload or {}
+    # Decisiones guardadas antes de este cambio no traen la acción: si se bloqueó, fue un bloqueo.
+    action = stored.get("decision") or ("block" if decision.blocked else "approve")
+    return CaseDecision(
+        probability=decision.probability,
+        score=decision.score,
+        level=stored["level"] if stored.get("decision") else LEVEL_BY_ACTION[action],
+        decision=action,
+        model_version=decision.model_version,
+        transaction={
+            key: value
+            for key, value in (decision.request_payload or {}).items()
+            if key not in THRESHOLD_FIELDS
+        },
+        shap=[ShapContribution.model_validate(item) for item in stored.get("shap", [])],
+    )
+
+
+def _response(case: PersistedCase, decision: PersistedDecision | None = None) -> CaseResponse:
     return CaseResponse(
         id=case.id,
         case_number=case.case_number,
@@ -24,6 +71,7 @@ def _response(case: PersistedCase) -> CaseResponse:
             {"author": note["author"], "content": note["content"], "createdAt": note["createdAt"]}
             for note in case.notes
         ],
+        decision=_decision_summary(decision),
     )
 
 
@@ -49,31 +97,21 @@ class CaseService:
                 {"caseId": existing_case.id},
             )
 
-        now = datetime.now(UTC)
-        case = PersistedCase(
-            id=str(uuid4()),
-            case_number=f"CASE-{uuid4().hex[:12].upper()}",
-            decision_id=payload.decision_id,
-            status="new",
-            assigned_to=payload.assigned_to,
-            verdict=None,
-            feedback_comment=None,
-            created_at=now,
-            updated_at=now,
-            resolved_at=None,
-            notes=(),
-        )
+        case = new_case(payload.decision_id, payload.assigned_to)
         self._repository.create_case(case, actor)
-        return _response(case)
+        return _response(case, decision)
 
     def list(self, status: str | None, assigned_to: str | None) -> list[CaseResponse]:
-        return [_response(case) for case in self._repository.list_cases(status=status, assigned_to=assigned_to)]
+        return [
+            _response(case, self._repository.get_decision(case.decision_id))
+            for case in self._repository.list_cases(status=status, assigned_to=assigned_to)
+        ]
 
     def get(self, case_id: str) -> CaseResponse:
         case = self._repository.get_case(case_id)
         if case is None:
             raise NotFoundError("El caso no existe.", {"caseId": case_id})
-        return _response(case)
+        return _response(case, self._repository.get_decision(case.decision_id))
 
     def update(self, case_id: str, payload: CaseUpdateRequest, actor: str) -> CaseResponse:
         case = self._repository.get_case(case_id)

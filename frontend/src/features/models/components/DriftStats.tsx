@@ -13,21 +13,21 @@ export function DriftStats({ health }: DriftStatsProps) {
   return (
     <div className="drift-stats">
       <div>
-        <span>Population Stability Index</span>
+        <span>Índice de estabilidad poblacional (PSI)</span>
         <strong>{health.psi.toFixed(2)}</strong>
         <Badge variant={withinThreshold ? "success" : "warning"}>
-          {withinThreshold ? "Within threshold" : "Above threshold"}
+          {withinThreshold ? "Dentro del umbral" : "Sobre el umbral"}
         </Badge>
       </div>
       <div>
-        <span>Distribution shift</span>
+        <span>Cambio en la distribución</span>
         <strong>{shift}</strong>
-        <small>vs. training baseline</small>
+        <small>vs. línea base de entrenamiento</small>
       </div>
       <div>
-        <span>Threshold</span>
+        <span>Umbral</span>
         <strong>{health.psiThreshold.toFixed(2)}</strong>
-        <small>PSI warning level</small>
+        <small>Nivel de alerta del PSI</small>
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ interface ChatResponse {
 const starter: ChatMessage = {
   role: "model",
   content:
-    "Soy SentinelAI Copilot. Puedo ayudarte a interpretar señales de riesgo, preparar una revisión y explicar el comportamiento del modelo.",
+    "Soy el copiloto de SentinelAI. Puedo ayudarte a interpretar señales de riesgo, preparar una revisión y explicar el comportamiento del modelo.",
 };
 
 export function ChatPage() {
@@ -54,8 +54,8 @@ export function ChatPage() {
     <section className="chat-page" aria-labelledby="chat-title">
       <div className="chat-intro">
         <div>
-          <p className="section-kicker">Fraud operations assistant</p>
-          <h1 id="chat-title">AI Copilot</h1>
+          <p className="section-kicker">Asistente de operaciones antifraude</p>
+          <h1 id="chat-title">Copiloto IA</h1>
           <p>Consulta señales, riesgos y próximos pasos con el contexto de tu operación.</p>
         </div>
         <span className="chat-model-badge"><Icon name="message" size={15} /> Gemini</span>
@@ -65,11 +65,11 @@ export function ChatPage() {
         <div className="chat-messages" aria-live="polite">
           {messages.map((item, index) => (
             <div className={`chat-message ${item.role}`} key={`${item.role}-${index}`}>
-              <span className="chat-message-label">{item.role === "model" ? "Copilot" : "Tú"}</span>
+              <span className="chat-message-label">{item.role === "model" ? "Copiloto" : "Tú"}</span>
               <p>{item.content}</p>
             </div>
           ))}
-          {isSending && <div className="chat-typing" role="status">Copilot está escribiendo…</div>}
+          {isSending && <div className="chat-typing" role="status">El copiloto está escribiendo…</div>}
         </div>
         <form className="chat-composer" onSubmit={handleSubmit}>
           <label htmlFor="chat-message">Mensaje</label>

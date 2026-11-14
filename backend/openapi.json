@@ -1021,7 +1021,7 @@
           },
           "accountAgeDays": {
             "type": "integer",
-            "maximum": 3650.0,
+            "maximum": 20000.0,
             "minimum": 0.0,
             "title": "Accountagedays"
           },
@@ -1087,7 +1087,7 @@
           },
           "customerRiskScore": {
             "type": "number",
-            "maximum": 1.0,
+            "maximum": 10.0,
             "minimum": 0.0,
             "title": "Customerriskscore"
           },
@@ -1121,6 +1121,19 @@
             "minimum": 0.0,
             "title": "Decisionthreshold",
             "default": 0.5
+          },
+          "blockThreshold": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blockthreshold"
           }
         },
         "additionalProperties": false,
@@ -1212,6 +1225,52 @@
             "type": "boolean",
             "title": "Idempotentreplay",
             "default": false
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "review",
+              "block"
+            ],
+            "title": "Decision",
+            "default": "approve"
+          },
+          "reviewThreshold": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Reviewthreshold",
+            "default": 0.5
+          },
+          "blockThreshold": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Blockthreshold",
+            "default": 0.5
+          },
+          "caseId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caseid"
+          },
+          "caseNumber": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Casenumber"
           }
         },
         "additionalProperties": false,
@@ -1326,6 +1385,81 @@
           "decisionId"
         ],
         "title": "CaseCreateRequest"
+      },
+      "CaseDecision": {
+        "properties": {
+          "probability": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Probability"
+          },
+          "score": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Level"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "review",
+              "block"
+            ],
+            "title": "Decision"
+          },
+          "modelVersion": {
+            "type": "string",
+            "title": "Modelversion"
+          },
+          "transaction": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Transaction"
+          },
+          "shap": {
+            "items": {
+              "$ref": "#/components/schemas/ShapContribution"
+            },
+            "type": "array",
+            "title": "Shap"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "probability",
+          "score",
+          "level",
+          "decision",
+          "modelVersion",
+          "transaction",
+          "shap"
+        ],
+        "title": "CaseDecision",
+        "description": "Resumen de la decisión del modelo que originó el caso."
       },
       "CaseListResponse": {
         "properties": {
@@ -1460,6 +1594,16 @@
             },
             "type": "array",
             "title": "Notes"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CaseDecision"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,

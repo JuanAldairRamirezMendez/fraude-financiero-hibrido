@@ -1,15 +1,9 @@
 import { clamp } from "@/lib/format";
-import type { RiskLevel } from "@/types/common";
 
+import { DECISION_SUMMARY, LEVEL_BY_DECISION, decide } from "./policy";
 import type { RiskAssessment, ShapTone, TransactionInput } from "./types";
 
 const tones: ShapTone[] = ["blue", "orange", "violet", "indigo", "cyan", "teal"];
-
-function resolveLevel(score: number): RiskLevel {
-  if (score >= 75) return "high";
-  if (score >= 40) return "medium";
-  return "low";
-}
 
 export function mockAnalyzeTransaction(input: TransactionInput): RiskAssessment {
   const amountImpact = clamp(input.transactionAmount / 10_000, 0.05, 2);
@@ -17,17 +11,25 @@ export function mockAnalyzeTransaction(input: TransactionInput): RiskAssessment 
   const velocityImpact = clamp(input.transactionVelocity24h / 100, 0.05, 1.4);
   const categoryImpact = input.isHighRiskMerchantCategory ? 0.9 : 0.12;
   const score = clamp(
-    Math.round(12 + input.transactionAmount / 500 + input.previousChargebacks * 6 + velocityImpact * 18 + categoryImpact * 18),
+    Math.round(
+      12 +
+        input.transactionAmount / 500 +
+        input.previousChargebacks * 6 +
+        velocityImpact * 18 +
+        categoryImpact * 18,
+    ),
     1,
     99,
   );
-  const level = resolveLevel(score);
+  const reviewThreshold = input.decisionThreshold ?? 0.5;
+  const blockThreshold = input.blockThreshold ?? reviewThreshold;
+  const decision = decide(score / 100, reviewThreshold, blockThreshold);
   const rawShap = [
-    ["Transaction amount", amountImpact],
-    ["Previous chargebacks", chargebackImpact],
-    ["Transaction velocity", velocityImpact],
-    ["Merchant risk", categoryImpact],
-    ["Customer risk score", input.customerRiskScore],
+    ["transaction_amount", amountImpact],
+    ["previous_chargebacks", chargebackImpact],
+    ["transaction_velocity_24h", velocityImpact],
+    ["is_high_risk_merchant_category", categoryImpact],
+    ["customer_risk_score", input.customerRiskScore],
   ] as const;
   const totalImpact = rawShap.reduce((sum, [, impact]) => sum + impact, 0);
 
@@ -35,8 +37,13 @@ export function mockAnalyzeTransaction(input: TransactionInput): RiskAssessment 
     decisionId: `#DEC-${Math.random().toString(36).slice(2, 10).toUpperCase()}`,
     probability: score / 100,
     score,
-    level,
-    blocked: score / 100 >= input.decisionThreshold,
+    level: LEVEL_BY_DECISION[decision],
+    blocked: decision !== "approve",
+    decision,
+    reviewThreshold,
+    blockThreshold,
+    caseId: null,
+    caseNumber: null,
     signalsTriggered: [
       input.transactionAmount >= 5_000,
       input.previousChargebacks >= 2,
@@ -51,15 +58,13 @@ export function mockAnalyzeTransaction(input: TransactionInput): RiskAssessment 
       direction: "increases" as const,
       tone: tones[index] ?? "slate",
     })),
-    topDriver: { feature: rawShap[0][0], impactPct: clamp((rawShap[0][1] / totalImpact) * 100, 1, 99) },
+    topDriver: {
+      feature: rawShap[0][0],
+      impactPct: clamp((rawShap[0][1] / totalImpact) * 100, 1, 99),
+    },
     modelVersion: "mock-xgboost-tier2",
     calibratedThreshold: 0.5,
     idempotentReplay: false,
-    summary:
-      level === "high"
-        ? "Multiple risk signals exceed the configured threshold."
-        : level === "medium"
-          ? "The transaction requires manual review."
-          : "No material risk signals were detected.",
+    summary: DECISION_SUMMARY[decision],
   };
 }

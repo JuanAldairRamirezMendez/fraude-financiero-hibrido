@@ -5,6 +5,15 @@ from typing import Literal
 
 RiskLevel = Literal["low", "medium", "high"]
 Direction = Literal["increases", "decreases"]
+DecisionAction = Literal["approve", "review", "block"]
+
+# Política de tres niveles. El umbral de revisión por defecto es el calibrado del modelo;
+# por encima del umbral de bloqueo el fraude es tan probable que se bloquea sin revisión.
+LEVEL_BY_ACTION: dict[DecisionAction, RiskLevel] = {
+    "approve": "low",
+    "review": "medium",
+    "block": "high",
+}
 
 NUMERIC_FEATURES = (
     "transaction_hour",
@@ -62,6 +71,15 @@ class Assessment:
     top_driver_feature: str
     top_driver_impact_pct: float
     model_version: str
+
+
+def decide(probability: float, review_threshold: float, block_threshold: float) -> DecisionAction:
+    """Aprobar, retener para revisión humana o bloquear de inmediato."""
+    if probability >= block_threshold:
+        return "block"
+    if probability >= review_threshold:
+        return "review"
+    return "approve"
 
 
 def risk_level(score: int) -> RiskLevel:

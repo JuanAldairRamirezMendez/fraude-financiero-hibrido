@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { Sparkline } from "@/components/ui/Sparkline";
+import { kpiLabel, kpiTrend } from "@/lib/labels";
 
 import type { Kpi } from "../types";
 
@@ -17,10 +18,10 @@ export function KpiGrid({ kpis }: KpiGridProps) {
             <Icon name={kpi.icon} />
           </div>
           <div className="kpi-meta">
-            <span>{kpi.label}</span>
+            <span>{kpiLabel(kpi.id, kpi.label)}</span>
             <strong>{kpi.value}</strong>
           </div>
-          <div className={`kpi-trend trend-${kpi.tone}`}>{kpi.trend}</div>
+          <div className={`kpi-trend trend-${kpi.tone}`}>{kpiTrend(kpi.trend)}</div>
           <Sparkline points={kpi.points} tone={kpi.tone} />
         </Card>
       ))}

@@ -3,6 +3,7 @@ import { apiRequest } from "@/lib/api/client";
 import { mockDelay } from "@/lib/api/mock";
 
 import { mockAnalyzeTransaction } from "./mocks";
+import { DECISION_SUMMARY } from "./policy";
 import type { ApiRiskAssessment, RiskAssessment, TransactionInput } from "./types";
 
 const MOCK_LATENCY_MS = 650;
@@ -19,12 +20,12 @@ export async function analyzeTransaction(
     });
     return {
       ...response,
-      summary: response.blocked
-        ? "Multiple risk signals exceed the configured threshold."
-        : "The transaction is below the configured risk threshold.",
+      summary: DECISION_SUMMARY[response.decision],
       shap: response.shap.map((item, index) => ({
         ...item,
-        tone: ["blue", "orange", "violet", "indigo", "cyan", "teal", "rose", "slate"][index] as RiskAssessment["shap"][number]["tone"],
+        tone: ["blue", "orange", "violet", "indigo", "cyan", "teal", "rose", "slate"][
+          index
+        ] as RiskAssessment["shap"][number]["tone"],
       })),
     };
   }

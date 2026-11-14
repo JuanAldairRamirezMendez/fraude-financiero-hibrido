@@ -1,21 +1,37 @@
+import { Link } from "react-router-dom";
+
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { ChartHeader } from "@/components/ui/ChartHeader";
-import { Icon } from "@/components/ui/Icon";
-import type { RiskLevel } from "@/types/common";
+import { Icon, type IconName } from "@/components/ui/Icon";
 
+import type { DecisionAction } from "../policy";
 import type { RiskAssessment } from "../types";
 import { RiskGauge } from "./RiskGauge";
 
-const levelVariant: Record<RiskLevel, BadgeVariant> = {
-  low: "success",
-  medium: "warning",
-  high: "danger",
-};
-
-const levelText: Record<RiskLevel, string> = {
-  low: "Low risk",
-  medium: "Medium risk",
-  high: "High risk",
+const DECISION_VIEW: Record<
+  DecisionAction,
+  { badge: string; variant: BadgeVariant; title: string; icon: IconName; stamp?: string }
+> = {
+  approve: {
+    badge: "Riesgo bajo",
+    variant: "success",
+    title: "Aprobada",
+    icon: "check",
+  },
+  review: {
+    badge: "Sospechosa",
+    variant: "warning",
+    title: "Bloqueada temporalmente · pendiente de revisión",
+    icon: "clock",
+    stamp: "RETENIDA",
+  },
+  block: {
+    badge: "Fraude probable",
+    variant: "danger",
+    title: "Bloqueada por riesgo de fraude",
+    icon: "shield",
+    stamp: "BLOQUEADA",
+  },
 };
 
 interface RiskAssessmentPanelProps {
@@ -23,36 +39,50 @@ interface RiskAssessmentPanelProps {
 }
 
 export function RiskAssessmentPanel({ assessment }: RiskAssessmentPanelProps) {
+  const view = DECISION_VIEW[assessment.decision];
+  const signals = assessment.signalsTriggered;
+
   return (
     <>
       <ChartHeader
-        title="Risk Assessment"
-        subtitle={`Decision generated in ${assessment.latencyMs}ms`}
-        actions={
-          <Badge variant={levelVariant[assessment.level]}>{levelText[assessment.level]}</Badge>
-        }
+        title="Evaluación de riesgo"
+        subtitle={`Decisión generada en ${assessment.latencyMs} ms`}
+        actions={<Badge variant={view.variant}>{view.badge}</Badge>}
       />
-      <RiskGauge score={assessment.score} level={assessment.level} />
-      <div className="decision-message">
+      <RiskGauge
+        score={assessment.score}
+        level={assessment.level}
+        reviewThreshold={assessment.reviewThreshold}
+        blockThreshold={assessment.blockThreshold}
+      />
+      <div className={`decision-message decision-${assessment.decision}`}>
         <span aria-hidden="true">
-          <Icon name="shield" size={22} />
+          <Icon name={view.icon} size={22} />
         </span>
         <div>
-          <strong>
-            {assessment.blocked ? "Blocked due to fraud alert" : "Approved — below risk threshold"}
-          </strong>
+          <strong>{view.title}</strong>
           <small>
-            {assessment.signalsTriggered} risk signals · {assessment.summary}
+            {assessment.summary} {signals} {signals === 1 ? "señal de riesgo" : "señales de riesgo"}
+            .
           </small>
         </div>
       </div>
-      {assessment.blocked && (
-        <div className="stamp" aria-hidden="true">
-          BLOCKED
+      {assessment.decision !== "approve" && assessment.caseId && (
+        <Link className="case-link" to={`/cases?case=${assessment.caseId}`}>
+          <Icon name="alert" size={16} />
+          <span>
+            Caso <strong>{assessment.caseNumber}</strong> enviado al analista para su revisión
+          </span>
+          <Icon name="arrow" size={15} />
+        </Link>
+      )}
+      {view.stamp && (
+        <div className={`stamp stamp-${assessment.decision}`} aria-hidden="true">
+          {view.stamp}
         </div>
       )}
       <div className="decision-id">
-        Decision ID <strong>{assessment.decisionId}</strong>
+        ID de decisión <strong>{assessment.decisionId}</strong>
       </div>
     </>
   );

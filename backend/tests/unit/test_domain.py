@@ -58,3 +58,41 @@ def test_extract_shap_vector_handles_class_axis() -> None:
 def test_extract_shap_vector_rejects_wrong_size() -> None:
     with pytest.raises(ServiceUnavailableError):
         _extract_shap_vector(np.array([0.1, 0.2]), 3)
+
+
+def test_decide_applies_three_level_policy() -> None:
+    from app.domain.transaction import decide
+
+    assert decide(0.10, 0.247, 0.75) == "approve"
+    assert decide(0.247, 0.247, 0.75) == "review"
+    assert decide(0.74, 0.247, 0.75) == "review"
+    assert decide(0.75, 0.247, 0.75) == "block"
+    # Con un único umbral (política por defecto) solo hay aprobar o bloquear.
+    assert decide(0.246, 0.247, 0.247) == "approve"
+    assert decide(0.247, 0.247, 0.247) == "block"
+
+
+def test_case_summary_of_decision_saved_before_the_policy_change() -> None:
+    """Las decisiones antiguas (p. ej. en la base de la nube) no guardaban la acción."""
+    from app.repositories.protocols import PersistedDecision
+    from app.services.case_service import _decision_summary
+
+    old = PersistedDecision(
+        id="1",
+        decision_id="DEC-OLD",
+        probability=0.55,
+        score=55,
+        level="medium",
+        blocked=True,
+        transaction_amount=900.0,
+        model_version="v-old",
+        request_payload={"transactionAmount": 900.0, "decisionThreshold": 0.5},
+        response_payload={"level": "medium", "shap": []},
+        request_id="req",
+    )
+
+    summary = _decision_summary(old)
+    assert summary is not None
+    assert summary.decision == "block"
+    assert summary.level == "high"
+    assert "decisionThreshold" not in summary.transaction

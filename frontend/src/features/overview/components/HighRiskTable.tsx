@@ -8,13 +8,14 @@ import { EmptyState } from "@/components/ui/PageState";
 import { Pagination } from "@/components/ui/Pagination";
 import { downloadCsv } from "@/lib/csv";
 import { formatCurrency, formatDateTime } from "@/lib/format";
+import { TRANSACTION_STATUS_LABELS, transactionTypeLabel } from "@/lib/labels";
 
 import type { Transaction, TransactionPageInfo, TransactionStatus } from "../types";
 
 const PAGE_SIZE = 5;
 
 const statusVariant: Record<TransactionStatus, BadgeVariant> = {
-  Flagged: "warning",
+  Flagged: "danger",
   Review: "info",
   Approved: "success",
 };
@@ -27,28 +28,30 @@ const columns: ReadonlyArray<Column<Transaction>> = [
   },
   {
     key: "occurredAt",
-    header: "Timestamp",
+    header: "Fecha y hora",
     render: (transaction) =>
-      transaction.occurredAt ? formatDateTime(transaction.occurredAt) : "Snapshot",
+      transaction.occurredAt ? formatDateTime(transaction.occurredAt) : "Instantánea",
   },
-  { key: "customer", header: "Customer", render: (transaction) => transaction.customer },
+  { key: "customer", header: "Cliente", render: (transaction) => transaction.customer },
   {
     key: "amount",
-    header: "Amount",
+    header: "Monto",
     render: (transaction) => <span className="amount">{formatCurrency(transaction.amount)}</span>,
   },
-  { key: "location", header: "Location", render: (transaction) => transaction.location },
-  { key: "type", header: "Type", render: (transaction) => transaction.type },
+  { key: "location", header: "Ubicación", render: (transaction) => transaction.location },
+  { key: "type", header: "Tipo", render: (transaction) => transactionTypeLabel(transaction.type) },
   {
     key: "score",
-    header: "Score",
+    header: "Puntaje",
     render: (transaction) => <span className="risk-score">{transaction.score}</span>,
   },
   {
     key: "status",
-    header: "Status",
+    header: "Estado",
     render: (transaction) => (
-      <Badge variant={statusVariant[transaction.status]}>{transaction.status}</Badge>
+      <Badge variant={statusVariant[transaction.status]}>
+        {TRANSACTION_STATUS_LABELS[transaction.status] ?? transaction.status}
+      </Badge>
     ),
   },
 ];
@@ -69,16 +72,16 @@ export function HighRiskTable({ transactions, pageInfo, onPageChange }: HighRisk
 
   function exportCsv() {
     downloadCsv("sentinelai-high-risk-transactions.csv", [
-      ["ID", "Timestamp", "Customer", "Amount", "Location", "Type", "Score", "Status"],
+      ["ID", "Fecha y hora", "Cliente", "Monto", "Ubicación", "Tipo", "Puntaje", "Estado"],
       ...transactions.map((transaction) => [
         transaction.id,
         transaction.occurredAt ?? "",
         transaction.customer,
         transaction.amount.toFixed(2),
         transaction.location,
-        transaction.type,
+        transactionTypeLabel(transaction.type),
         String(transaction.score),
-        transaction.status,
+        TRANSACTION_STATUS_LABELS[transaction.status] ?? transaction.status,
       ]),
     ]);
   }
@@ -86,8 +89,8 @@ export function HighRiskTable({ transactions, pageInfo, onPageChange }: HighRisk
   return (
     <Card className="table-card">
       <ChartHeader
-        title="Recent High-Risk Transactions"
-        subtitle="Transactions with a risk score above 80"
+        title="Transacciones recientes de alto riesgo"
+        subtitle="Ordenadas de mayor a menor probabilidad de fraude. Desde el 24.7 % el modelo las bloquea."
         actions={
           <div className="table-actions">
             <button
@@ -96,7 +99,7 @@ export function HighRiskTable({ transactions, pageInfo, onPageChange }: HighRisk
               onClick={exportCsv}
               disabled={transactions.length === 0}
             >
-              Export CSV
+              Exportar CSV
             </button>
           </div>
         }
@@ -119,7 +122,7 @@ export function HighRiskTable({ transactions, pageInfo, onPageChange }: HighRisk
             pageCount={pageCount}
             totalItems={pageInfo?.total ?? transactions.length}
             pageSize={pageInfo?.pageSize ?? PAGE_SIZE}
-            label="high-risk transactions"
+            label="transacciones de alto riesgo"
             onPageChange={(nextPage) => {
               setPage(nextPage);
               onPageChange?.(nextPage);

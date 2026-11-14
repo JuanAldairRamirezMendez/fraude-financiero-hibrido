@@ -15,9 +15,9 @@ describe("validateTransactionForm", () => {
       transactionAmount: 484.15,
       merchantCategory: "travel",
       transactionCountry: "US",
-      decisionThreshold: 0.5,
+      decisionThreshold: 0.247,
     });
-    expect(Object.keys(result.input ?? {})).toHaveLength(19);
+    expect(Object.keys(result.input ?? {})).toHaveLength(20);
   });
 
   it("rechaza valores fuera de rango y categorias vacias", () => {
@@ -33,5 +33,12 @@ describe("validateTransactionForm", () => {
     expect(result.errors.transactionAmount).toBeDefined();
     expect(result.errors.transactionHour).toBeDefined();
     expect(result.errors.merchantCategory).toBeDefined();
+  });
+
+  it("usa un único umbral: aprobar o bloquear, sin franja de revisión", () => {
+    const result = validateTransactionForm({ ...INITIAL_FORM_VALUES, decisionThreshold: "0.3" });
+
+    expect(result.input?.decisionThreshold).toBe(0.3);
+    expect(result.input?.blockThreshold).toBe(0.3);
   });
 });

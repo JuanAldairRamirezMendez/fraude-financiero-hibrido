@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { env } from "@/config/env";
+import { resetAnalyzerSession } from "@/features/analyzer/session";
 import { apiRequest, ApiError } from "@/lib/api/client";
 
 interface AuthUser {
@@ -32,13 +33,11 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children?: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Con datos simulados no hay sesión que consultar: se entra sin esperar.
+  const [isLoading, setIsLoading] = useState(!env.useMocks);
 
   useEffect(() => {
-    if (env.useMocks) {
-      setIsLoading(false);
-      return;
-    }
+    if (env.useMocks) return;
 
     let active = true;
 
@@ -67,6 +66,8 @@ export function AuthProvider({ children }: { children?: ReactNode }) {
   }
 
   async function logout() {
+    // El Analizador no debe mostrar el último análisis de otra sesión.
+    resetAnalyzerSession();
     if (env.useMocks) {
       setUser(null);
       return;

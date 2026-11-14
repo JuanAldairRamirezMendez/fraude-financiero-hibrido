@@ -82,6 +82,8 @@ def test_auth_http_flow_and_csrf() -> None:
             assert client.cookies.get("refresh_token") != refresh
             csrf = client.cookies.get("csrf_token")
             assert csrf
+            # Reutilizar el token ya rotado: se borra el nuevo para que el cliente no envíe ambos.
+            client.cookies.delete("refresh_token")
             client.cookies.set("refresh_token", refresh)
             assert client.post(
                 "/api/v1/auth/refresh", headers={"X-CSRF-Token": csrf}
