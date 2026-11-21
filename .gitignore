@@ -13,12 +13,8 @@ node_modules/
 
 # Datos (NO subir datasets a Git)
 data/raw/*
-data/processed/*
-data/external/*
 !data/README.md
 !data/raw/.gitkeep
-!data/processed/.gitkeep
-!data/external/.gitkeep
 
 # Modelos entrenados
 models_saved/*
@@ -28,7 +24,7 @@ models_saved/*
 *.keras
 *.pth
 *.joblib
-!models_saved/xgboost_tier2_isotonic.pkl
+!models_saved/xgboost_sparkov.json
 
 # Artefactos de entrenamiento y ejecucion
 catboost_info/

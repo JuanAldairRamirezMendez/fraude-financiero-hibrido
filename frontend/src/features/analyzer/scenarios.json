@@ -1,0 +1,44 @@
+[
+  {
+    "id": "normal",
+    "label": "Compra habitual",
+    "expectedRisk": "low",
+    "description": "Supermercado por US$ 114.06 a las 11:47; la tarjeta lleva 9 compras (US$ 705) en 24 h.",
+    "values": {
+      "cardId": "TARJ-0573",
+      "transactionTime": "2020-07-07T11:47:35",
+      "amount": 114.06,
+      "category": "grocery_pos",
+      "merchantDistanceKm": 90.3
+    },
+    "expectedScore": 0
+  },
+  {
+    "id": "suspicious",
+    "label": "Sospechosa",
+    "expectedRisk": "medium",
+    "description": "Viajes por US$ 7.15 a las 22:26; la tarjeta lleva 4 compras (US$ 1,739) en 24 h.",
+    "values": {
+      "cardId": "TARJ-0050",
+      "transactionTime": "2020-11-08T22:26:57",
+      "amount": 7.15,
+      "category": "travel",
+      "merchantDistanceKm": 75.1
+    },
+    "expectedScore": 68
+  },
+  {
+    "id": "fraud",
+    "label": "Fraude probable",
+    "expectedRisk": "high",
+    "description": "Tienda por US$ 854.43 a las 22:23; la tarjeta lleva 11 compras (US$ 4,776) en 24 h.",
+    "values": {
+      "cardId": "TARJ-0471",
+      "transactionTime": "2020-10-15T22:23:52",
+      "amount": 854.43,
+      "category": "shopping_pos",
+      "merchantDistanceKm": 79.8
+    },
+    "expectedScore": 100
+  }
+]

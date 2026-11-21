@@ -1,0 +1,316 @@
+{
+ "cardId": "TARJ-0471",
+ "gender": "F",
+ "age": 20,
+ "city": "Phoenix",
+ "state": "AZ",
+ "threshold": 0.4658,
+ "start": "2020-10-10T01:53:53",
+ "end": "2020-10-16T23:39:41",
+ "before": {
+  "purchases": 24,
+  "averageAmount": 58.98,
+  "maxAmount": 862.79
+ },
+ "burst": {
+  "purchases": 15,
+  "totalAmount": 6231.7,
+  "hours": 45.8,
+  "firstAt": "2020-10-14T01:53:53"
+ },
+ "model": {
+  "fraudsBlocked": 14,
+  "frauds": 15,
+  "falseAlarms": 0,
+  "legitimate": 26
+ },
+ "purchases": [
+  {
+   "time": "2020-10-10T17:07:12",
+   "amount": 6.83,
+   "category": "misc_pos",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-10T22:32:55",
+   "amount": 29.8,
+   "category": "entertainment",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-11T05:19:38",
+   "amount": 45.61,
+   "category": "gas_transport",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-11T08:06:15",
+   "amount": 39.06,
+   "category": "grocery_net",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-11T15:58:00",
+   "amount": 6.6,
+   "category": "travel",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-11T16:11:44",
+   "amount": 75.09,
+   "category": "health_fitness",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-11T22:02:28",
+   "amount": 20.48,
+   "category": "entertainment",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-11T22:53:46",
+   "amount": 20.9,
+   "category": "home",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-12T14:30:33",
+   "amount": 15.79,
+   "category": "food_dining",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-12T14:31:19",
+   "amount": 9.02,
+   "category": "shopping_pos",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-12T14:39:39",
+   "amount": 5.81,
+   "category": "shopping_net",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-12T14:49:17",
+   "amount": 19.09,
+   "category": "kids_pets",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-12T17:45:12",
+   "amount": 64.85,
+   "category": "home",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-12T21:42:07",
+   "amount": 7.61,
+   "category": "kids_pets",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-12T22:40:22",
+   "amount": 3.65,
+   "category": "entertainment",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-12T23:54:39",
+   "amount": 4.18,
+   "category": "kids_pets",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-13T15:52:51",
+   "amount": 9.96,
+   "category": "health_fitness",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-13T16:28:09",
+   "amount": 862.79,
+   "category": "misc_net",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-13T17:10:13",
+   "amount": 1.19,
+   "category": "food_dining",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-13T20:34:14",
+   "amount": 29.03,
+   "category": "grocery_pos",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-13T20:41:29",
+   "amount": 47.2,
+   "category": "health_fitness",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-13T20:49:38",
+   "amount": 83.44,
+   "category": "health_fitness",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-13T21:18:59",
+   "amount": 1.78,
+   "category": "entertainment",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-13T23:48:00",
+   "amount": 5.77,
+   "category": "shopping_pos",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-14T01:53:53",
+   "amount": 306.95,
+   "category": "grocery_pos",
+   "score": 100,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-14T02:03:13",
+   "amount": 335.95,
+   "category": "grocery_pos",
+   "score": 100,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-14T23:02:34",
+   "amount": 873.29,
+   "category": "shopping_net",
+   "score": 88,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-14T23:21:33",
+   "amount": 8.14,
+   "category": "travel",
+   "score": 2,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-14T23:30:09",
+   "amount": 708.51,
+   "category": "misc_net",
+   "score": 98,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-15T00:20:49",
+   "amount": 870.55,
+   "category": "misc_net",
+   "score": 100,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-15T00:36:48",
+   "amount": 290.0,
+   "category": "grocery_pos",
+   "score": 100,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-15T00:42:27",
+   "amount": 850.16,
+   "category": "misc_net",
+   "score": 100,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-15T01:37:04",
+   "amount": 7.23,
+   "category": "gas_transport",
+   "score": 100,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-15T02:24:35",
+   "amount": 284.76,
+   "category": "grocery_pos",
+   "score": 100,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-15T03:23:53",
+   "amount": 8.52,
+   "category": "grocery_net",
+   "score": 99,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-15T22:04:23",
+   "amount": 20.61,
+   "category": "kids_pets",
+   "score": 90,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-15T22:23:52",
+   "amount": 854.43,
+   "category": "shopping_pos",
+   "score": 100,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-15T22:36:44",
+   "amount": 10.18,
+   "category": "travel",
+   "score": 98,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-15T23:39:41",
+   "amount": 802.42,
+   "category": "shopping_net",
+   "score": 100,
+   "isFraud": true
+  },
+  {
+   "time": "2020-10-16T13:25:48",
+   "amount": 7.55,
+   "category": "kids_pets",
+   "score": 0,
+   "isFraud": false
+  },
+  {
+   "time": "2020-10-16T17:58:05",
+   "amount": 40.97,
+   "category": "food_dining",
+   "score": 0,
+   "isFraud": false
+  }
+ ]
+}

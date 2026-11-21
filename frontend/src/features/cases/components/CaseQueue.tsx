@@ -1,5 +1,5 @@
 import { formatCurrency, formatRelative } from "@/lib/format";
-import { COUNTRY_LABELS, MERCHANT_CATEGORY_LABELS } from "@/lib/labels";
+import { categoryLabel } from "@/lib/labels";
 
 import { STATUS_LABELS, VERDICT_LABELS, type FraudCase } from "../api";
 
@@ -20,9 +20,10 @@ export function CaseQueue({ cases, selectedId, onSelect }: CaseQueueProps) {
     <ul className="case-queue" aria-label="Cola de casos">
       {cases.map((item) => {
         const transaction = item.decision?.transaction ?? {};
-        const amount = Number(transaction.transactionAmount ?? 0);
-        const category = String(transaction.merchantCategory ?? "");
-        const country = String(transaction.transactionCountry ?? "");
+        // Casos nuevos (Sparkov) y antiguos (modelo anterior) guardan campos distintos.
+        const amount = Number(transaction.amount ?? transaction.transactionAmount ?? 0);
+        const category = String(transaction.category ?? transaction.merchantCategory ?? "");
+        const where = String(transaction.cardId ?? transaction.transactionCountry ?? "");
         const probability = item.decision ? Math.round(item.decision.probability * 100) : null;
         const selected = item.id === selectedId;
 
@@ -47,8 +48,8 @@ export function CaseQueue({ cases, selectedId, onSelect }: CaseQueueProps) {
                 )}
               </span>
               <span className="case-item-meta">
-                {MERCHANT_CATEGORY_LABELS[category] ?? category}
-                {country && ` · ${COUNTRY_LABELS[country] ?? country}`}
+                {categoryLabel(category)}
+                {where && ` · ${where}`}
               </span>
               <span className="case-item-bottom">
                 <span className={`case-status status-${caseTone(item)}`}>

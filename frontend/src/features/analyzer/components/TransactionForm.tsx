@@ -3,15 +3,9 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
-import {
-  COUNTRY_LABELS,
-  DEVICE_LABELS,
-  MERCHANT_CATEGORY_LABELS,
-  REGION_LABELS,
-  TRANSACTION_TYPE_LABELS,
-  YES_NO_LABELS,
-} from "@/lib/labels";
+import { MERCHANT_CATEGORY_LABELS } from "@/lib/labels";
 
+import { CARD_LABELS, CARDS } from "../cards";
 import { pickRealSample, sampleToFormValues, type RealSample } from "../realSamples";
 import { DEMO_SCENARIOS, type DemoScenario } from "../scenarios";
 import { useAnalyzerSession } from "../session";
@@ -31,7 +25,7 @@ interface TransactionFormProps {
 type FieldConfig = {
   key: keyof TransactionFormValues;
   label: string;
-  type?: "text" | "number";
+  type?: "text" | "number" | "datetime-local";
   min?: number;
   max?: number;
   step?: number;
@@ -39,140 +33,35 @@ type FieldConfig = {
   optionLabels?: Readonly<Record<string, string>>;
 };
 
-const optionsOf = (labels: Readonly<Record<string, string>>) => Object.keys(labels);
-
-// El modelo se entrenó con lunes = 0 … domingo = 6.
-const DAY_LABELS: Record<string, string> = {
-  "0": "Lunes",
-  "1": "Martes",
-  "2": "Miércoles",
-  "3": "Jueves",
-  "4": "Viernes",
-  "5": "Sábado",
-  "6": "Domingo",
-};
-
 const FIELDS: readonly FieldConfig[] = [
   {
-    key: "transactionHour",
-    label: "Hora de la transacción (0-23)",
+    key: "cardId",
+    label: "Tarjeta del cliente",
+    options: CARDS.map((card) => card.id),
+    optionLabels: CARD_LABELS,
+  },
+  { key: "transactionTime", label: "Fecha y hora", type: "datetime-local", step: 1 },
+  {
+    key: "amount",
+    label: "Monto (US$)",
     type: "number",
-    min: 0,
-    max: 23,
-    step: 1,
+    min: 0.01,
+    max: 50_000,
+    step: 0.01,
   },
   {
-    key: "transactionDayOfWeek",
-    label: "Día de la semana",
-    options: optionsOf(DAY_LABELS),
-    optionLabels: DAY_LABELS,
-  },
-  {
-    key: "accountAgeDays",
-    label: "Antigüedad de la cuenta (días)",
-    type: "number",
-    min: 0,
-    max: 20_000,
-    step: 1,
-  },
-  {
-    key: "previousChargebacks",
-    label: "Contracargos previos",
-    type: "number",
-    min: 0,
-    max: 50,
-    step: 1,
-  },
-  {
-    key: "merchantCategory",
+    key: "category",
     label: "Categoría del comercio",
-    options: optionsOf(MERCHANT_CATEGORY_LABELS),
+    options: Object.keys(MERCHANT_CATEGORY_LABELS),
     optionLabels: MERCHANT_CATEGORY_LABELS,
   },
   {
-    key: "transactionCountry",
-    label: "País de la transacción",
-    options: optionsOf(COUNTRY_LABELS),
-    optionLabels: COUNTRY_LABELS,
-  },
-  {
-    key: "deviceType",
-    label: "Tipo de dispositivo",
-    options: optionsOf(DEVICE_LABELS),
-    optionLabels: DEVICE_LABELS,
-  },
-  {
-    key: "transactionType",
-    label: "Tipo de transacción",
-    options: optionsOf(TRANSACTION_TYPE_LABELS),
-    optionLabels: TRANSACTION_TYPE_LABELS,
-  },
-  {
-    key: "geoLocationRegion",
-    label: "Región geográfica",
-    options: optionsOf(REGION_LABELS),
-    optionLabels: REGION_LABELS,
-  },
-  {
-    key: "isInternational",
-    label: "Internacional",
-    options: ["0", "1"],
-    optionLabels: YES_NO_LABELS,
-  },
-  {
-    key: "isHighRiskMerchantCategory",
-    label: "Comercio de alto riesgo",
-    options: ["0", "1"],
-    optionLabels: YES_NO_LABELS,
-  },
-  { key: "isWeekend", label: "Fin de semana", options: ["0", "1"], optionLabels: YES_NO_LABELS },
-  {
-    key: "customerTotalTransactions30d",
-    label: "Transacciones del cliente (30 días)",
+    key: "merchantDistanceKm",
+    label: "Distancia al comercio (km)",
     type: "number",
     min: 0,
-    max: 500,
-    step: 1,
-  },
-  {
-    key: "customerRiskScore",
-    label: "Score de riesgo del cliente (0-10)",
-    type: "number",
-    min: 0,
-    max: 10,
-    step: 0.01,
-  },
-  {
-    key: "transactionAmount",
-    label: "Monto de la transacción",
-    type: "number",
-    min: 0.01,
-    max: 1_000_000,
-    step: 0.01,
-  },
-  {
-    key: "avgTransactionAmount30dCustomer",
-    label: "Monto promedio (30 días)",
-    type: "number",
-    min: 0,
-    max: 1_000_000,
-    step: 0.01,
-  },
-  {
-    key: "transactionVelocity1h",
-    label: "Transacciones en la última hora",
-    type: "number",
-    min: 0,
-    max: 100,
-    step: 1,
-  },
-  {
-    key: "transactionVelocity24h",
-    label: "Transacciones en las últimas 24 h",
-    type: "number",
-    min: 0,
-    max: 500,
-    step: 1,
+    max: 1_000,
+    step: 0.1,
   },
   {
     key: "decisionThreshold",

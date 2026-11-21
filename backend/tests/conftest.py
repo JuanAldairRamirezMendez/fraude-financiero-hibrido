@@ -69,7 +69,7 @@ class FakeInferenceService:
 
     def analyze(self, request: AnalyzeRequest) -> Assessment:
         self.calls += 1
-        probability = 0.91 if request.transaction_amount >= 3_000 else 0.12
+        probability = 0.91 if request.amount >= 3_000 else 0.12
         score = round(probability * 100)
         return Assessment(
             decision_id=f"DEC-FAKE-{self.calls:04d}",
@@ -80,10 +80,10 @@ class FakeInferenceService:
             signals_triggered=2,
             latency_ms=12,
             shap=(
-                ShapContribution("transaction_amount", 1.25, "increases"),
-                ShapContribution("customer_risk_score", 0.31, "decreases"),
+                ShapContribution("monto", 1.25, "increases"),
+                ShapContribution("compras_24h", 0.31, "decreases"),
             ),
-            top_driver_feature="transaction_amount",
+            top_driver_feature="monto",
             top_driver_impact_pct=80.1,
             model_version=self.model_version,
         )
@@ -327,7 +327,8 @@ def client(
         database_url=f"sqlite:///{tmp_path / 'test.db'}",
         static_dir=tmp_path / "dist",
         model_path=tmp_path / "missing-model.pkl",
-        preprocessor_path=tmp_path / "missing-preprocessor.joblib",
+        card_history_path=tmp_path / "missing-history.parquet",
+        card_profiles_path=tmp_path / "missing-profiles.json",
         feature_contract_path=tmp_path / "missing-contract.json",
         model_metadata_path=tmp_path / "missing-metadata.json",
         snapshot_path=tmp_path / "missing-snapshot.json",
@@ -363,24 +364,11 @@ def client(
 @pytest.fixture
 def valid_payload() -> dict[str, object]:
     return {
-        "transactionHour": 14,
-        "transactionDayOfWeek": 2,
-        "accountAgeDays": 10,
-        "previousChargebacks": 3,
-        "merchantCategory": "gambling",
-        "transactionCountry": "US",
-        "deviceType": "mobile",
-        "transactionType": "online",
-        "geoLocationRegion": "North America",
-        "isInternational": 1,
-        "isHighRiskMerchantCategory": 1,
-        "isWeekend": 0,
-        "customerTotalTransactions30d": 20,
-        "customerRiskScore": 0.8,
-        "transactionAmount": 9000,
-        "avgTransactionAmount30dCustomer": 500,
-        "transactionVelocity1h": 6,
-        "transactionVelocity24h": 15,
+        "cardId": "TARJ-0471",
+        "transactionTime": "2020-10-15T22:23:52",
+        "amount": 9000,
+        "category": "shopping_net",
+        "merchantDistanceKm": 80.5,
         "decisionThreshold": 0.5,
     }
 

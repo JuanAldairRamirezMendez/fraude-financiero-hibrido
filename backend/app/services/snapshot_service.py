@@ -169,4 +169,5 @@ class SnapshotService:
             score=int(row["score"]),
             status=str(row["status"]),  # type: ignore[arg-type]
             risk_label=int(row["riskLabel"]),
+            occurred_at=str(row["occurredAt"]) if row.get("occurredAt") else None,
         )

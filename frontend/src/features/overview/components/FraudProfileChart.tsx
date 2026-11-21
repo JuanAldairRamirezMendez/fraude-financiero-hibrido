@@ -2,25 +2,25 @@ import { useState } from "react";
 
 import { EVALUATION, type ProfileBucket, type ProfileDimension } from "@/features/evaluation/data";
 import { formatNumber } from "@/lib/format";
-import { COUNTRY_LABELS, MERCHANT_CATEGORY_LABELS, TRANSACTION_TYPE_LABELS } from "@/lib/labels";
+import { MERCHANT_CATEGORY_LABELS, TRANSACTION_TYPE_LABELS } from "@/lib/labels";
 
 const DIMENSIONS: ReadonlyArray<{ key: ProfileDimension; label: string }> = [
-  { key: "merchantCategory", label: "Categoría" },
-  { key: "transactionHour", label: "Hora" },
-  { key: "transactionCountry", label: "País" },
-  { key: "transactionType", label: "Tipo" },
+  { key: "category", label: "Categoría" },
+  { key: "hour", label: "Hora" },
+  { key: "channel", label: "Canal" },
+  { key: "ageGroup", label: "Edad" },
 ];
 
 const LABELS: Partial<Record<ProfileDimension, Record<string, string>>> = {
-  merchantCategory: MERCHANT_CATEGORY_LABELS,
-  transactionCountry: COUNTRY_LABELS,
-  transactionType: TRANSACTION_TYPE_LABELS,
+  category: MERCHANT_CATEGORY_LABELS,
+  channel: TRANSACTION_TYPE_LABELS,
 };
 
 const percent = (value: number) => `${(value * 100).toFixed(2)}%`;
 
 function bucketLabel(dimension: ProfileDimension, key: string) {
-  if (dimension === "transactionHour") return `${key.padStart(2, "0")}:00`;
+  if (dimension === "hour") return `${key.padStart(2, "0")}:00`;
+  if (dimension === "ageGroup") return `${key} años`;
   return LABELS[dimension]?.[key] ?? key;
 }
 
@@ -55,7 +55,7 @@ function HourColumns({ buckets, average }: { buckets: ProfileBucket[]; average: 
               className={highlight ? "profile-col is-high" : "profile-col"}
             >
               <title>
-                {`${bucketLabel("transactionHour", bucket.key)} · ${percent(bucket.fraudRate)} (${bucket.frauds} de ${formatNumber(bucket.transactions)})`}
+                {`${bucketLabel("hour", bucket.key)} · ${percent(bucket.fraudRate)} (${bucket.frauds} de ${formatNumber(bucket.transactions)})`}
               </title>
             </rect>
             {index % 3 === 0 && (
@@ -75,11 +75,11 @@ function HourColumns({ buckets, average }: { buckets: ProfileBucket[]; average: 
 }
 
 export function FraudProfileChart() {
-  const [dimension, setDimension] = useState<ProfileDimension>("merchantCategory");
+  const [dimension, setDimension] = useState<ProfileDimension>("category");
   const average = EVALUATION.dataset.fraudRate;
   const buckets = EVALUATION.profile[dimension];
   const sorted =
-    dimension === "transactionHour"
+    dimension === "hour" || dimension === "ageGroup"
       ? buckets
       : [...buckets].sort((a, b) => b.fraudRate - a.fraudRate);
   const max = Math.max(...sorted.map((bucket) => bucket.fraudRate));
@@ -104,7 +104,7 @@ export function FraudProfileChart() {
         </span>
       </div>
 
-      {dimension === "transactionHour" ? (
+      {dimension === "hour" ? (
         <HourColumns buckets={sorted} average={average} />
       ) : (
         <ol className="benchmark-bars profile-bars" aria-label="Tasa de fraude por grupo">

@@ -19,9 +19,9 @@ test.describe("navegación", () => {
       page.getByRole("heading", { level: 1, name: "Analizador de transacciones" }),
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "Salud del modelo" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "Salud del modelo" })).toBeVisible();
-    await expect(page.locator(".status-banner")).toContainText("Estable");
+    await page.getByRole("link", { name: "Revisión de casos" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Revisión de casos" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Salud del modelo" })).toHaveCount(0);
   });
 
   test("abre el menú off-canvas en móvil", async ({ page }, testInfo) => {
@@ -29,9 +29,11 @@ test.describe("navegación", () => {
 
     await page.goto("/");
     await page.getByRole("button", { name: /abrir menú/i }).click();
-    await expect(page.getByRole("link", { name: "Salud del modelo" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Evaluación" })).toBeVisible();
 
-    await page.getByRole("link", { name: "Salud del modelo" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "Salud del modelo" })).toBeVisible();
+    await page.getByRole("link", { name: "Evaluación" }).click();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Evaluación del modelo" }),
+    ).toBeVisible();
   });
 });

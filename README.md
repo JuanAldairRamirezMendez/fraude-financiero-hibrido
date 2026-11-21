@@ -92,7 +92,8 @@ fraude-financiero-hibrido/
 │   ├── app/                     # Aplicación FastAPI
 │   ├── migrations/              # Migraciones Alembic
 │   ├── tests/                   # Tests del backend
-│   ├── artifacts/               # Contratos, metadata y snapshots
+│   ├── artifacts/               # Contratos, metadata, historial de tarjetas y snapshots
+│   ├── scripts/                 # Entrenamiento del modelo y comparativa de modelos
 │   ├── requirements.txt         # Dependencias de runtime
 │   ├── requirements-dev.txt     # Dependencias de desarrollo
 │   └── pyproject.toml           # Configuración de Ruff y pytest
@@ -101,18 +102,12 @@ fraude-financiero-hibrido/
 │   ├── e2e/                     # Pruebas E2E de Playwright
 │   ├── package.json             # Scripts y dependencias de UI
 │   └── vite.config.ts          # Configuración de Vite
-├── config/                     # Configuraciones compartidas
-├── data/                       # Datos locales y no versionados
+├── data/                       # Dataset Sparkov local (no versionado)
 ├── docs/                       # Documentación técnica
 ├── logs/                       # Logs de ejecución
-├── notebooks/                  # Jupyter notebooks
-├── models_saved/               # Modelos entrenados exportados
-├── reports/                    # Reportes y resultados
-├── src/                        # Código de ML experimental / soporte
-├── pipeline_completo.py         # Pipeline unificado del proyecto
+├── models_saved/               # Modelo XGBoost entrenado (xgboost_sparkov.json)
+├── reports/                    # Reportes locales (no versionados)
 ├── docker-compose.yml           # Orquestación local con PostgreSQL + API
-├── Makefile                    # Comandos de entorno y pipeline
-├── requirements.txt             # Dependencias del pipeline ML general
 ├── package.json                 # Hoja de herramientas del repo base
 ├── README.md                   # Documentación principal
 ├── .gitignore                  # Exclusiones de artefactos y cachés
@@ -146,20 +141,14 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3) Instalar dependencias del pipeline ML
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4) Instalar dependencias de la API backend
+### 3) Instalar dependencias de la API backend
 
 ```bash
 pip install -r backend/requirements.txt
 pip install -r backend/requirements-dev.txt
 ```
 
-### 5) Configurar variables de entorno
+### 4) Configurar variables de entorno
 
 Crea un archivo `.env` en la raíz del proyecto con variables como:
 
@@ -223,20 +212,22 @@ Para conectar el frontend al backend real durante el desarrollo, crea
 permitir trabajar con datos simulados sin iniciar la API. En producción,
 `VITE_USE_MOCKS=false` debe estar definido durante la compilación del frontend.
 
-## Ejecutar el pipeline completo
+## Reentrenar el modelo
 
-Para generar artefactos del sistema de ML, ejecutar el pipeline unificado:
+Descarga el dataset Sparkov (`fraudTrain.csv` y `fraudTest.csv`) en
+`data/raw/sparkov/` y, desde la raíz del proyecto, ejecuta:
 
 ```bash
-python pipeline_completo.py
+python backend/scripts/build_sparkov_artifacts.py
 ```
 
-También está disponible el shortcut de Makefile:
+El script entrena XGBoost, elige el umbral con la validación, mide en la prueba y
+regenera el modelo, los artefactos del backend y los datos de la web.
+
+Para regenerar la página "Comparativa IA" (requiere `lightgbm`):
 
 ```bash
-make setup
-make install
-make pipeline
+python backend/scripts/comparativa_sparkov.py
 ```
 
 ## Calidad y pruebas

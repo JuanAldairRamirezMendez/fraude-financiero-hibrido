@@ -36,14 +36,26 @@ function makeCase(overrides: Partial<FraudCase> = {}): FraudCase {
       decision: "block",
       modelVersion: "test",
       transaction: {
-        transactionAmount: 4560,
-        avgTransactionAmount30dCustomer: 380,
-        merchantCategory: "luxury_goods",
-        transactionCountry: "BR",
-        geoLocationRegion: "South America",
-        previousChargebacks: 2,
+        cardId: "TARJ-0471",
+        transactionTime: "2020-10-15T22:23:52",
+        amount: 854.43,
+        category: "shopping_pos",
+        merchantDistanceKm: 79.8,
       },
-      shap: [{ feature: "previous_chargebacks", impact: 1.2, direction: "increases" }],
+      shap: [{ feature: "monto_1h", impact: 1.2, direction: "increases" }],
+      card: {
+        previousPurchases: 812,
+        secondsSincePrevious: 240,
+        averageAmount: 61.2,
+        purchases1h: 4,
+        amount1h: 2_310.5,
+        purchases24h: 11,
+        amount24h: 4_776,
+        customerAge: 52,
+        customerGender: "F",
+        city: "Houston",
+        state: "TX",
+      },
     },
     ...overrides,
   };
@@ -79,8 +91,35 @@ describe("CasesPage", () => {
     expect(within(queue).getByText("CASE-AAA111")).toBeInTheDocument();
     expect(within(queue).queryByText("CASE-BBB222")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "CASE-AAA111" })).toBeInTheDocument();
+    expect(screen.getAllByText("Gasto en la última hora").length).toBeGreaterThan(0);
+    expect(screen.getByText("Compras en 24 h")).toBeInTheDocument();
+    expect(screen.getByText(/4 · USD 2,310\.50/)).toBeInTheDocument();
+  });
+
+  it("sigue mostrando los casos guardados con el modelo anterior", async () => {
+    const legacy = makeCase({
+      decision: {
+        probability: 0.48,
+        score: 48,
+        level: "medium",
+        decision: "review",
+        modelVersion: "xgboost-tier2-isotonic",
+        transaction: {
+          transactionAmount: 4560,
+          merchantCategory: "luxury_goods",
+          transactionCountry: "BR",
+          previousChargebacks: 2,
+        },
+        shap: [{ feature: "previous_chargebacks", impact: 1.2, direction: "increases" }],
+      },
+    });
+    apiRequest.mockResolvedValue({ items: [legacy], total: 1 });
+
+    renderPage();
+
+    expect(await screen.findByRole("heading", { name: "CASE-AAA111" })).toBeInTheDocument();
     expect(screen.getAllByText("Contracargos previos").length).toBeGreaterThan(0);
-    expect(screen.getByText("Artículos de lujo")).toBeInTheDocument();
+    expect(screen.getAllByText(/Artículos de lujo/).length).toBeGreaterThan(0);
   });
 
   it("libera una transacción con el veredicto del analista", async () => {

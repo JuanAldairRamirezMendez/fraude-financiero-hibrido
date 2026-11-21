@@ -7,48 +7,12 @@ RiskLevel = Literal["low", "medium", "high"]
 Direction = Literal["increases", "decreases"]
 DecisionAction = Literal["approve", "review", "block"]
 
-# Política de tres niveles. El umbral de revisión por defecto es el calibrado del modelo;
-# por encima del umbral de bloqueo el fraude es tan probable que se bloquea sin revisión.
+# El nivel mostrado siempre coincide con la acción tomada.
 LEVEL_BY_ACTION: dict[DecisionAction, RiskLevel] = {
     "approve": "low",
     "review": "medium",
     "block": "high",
 }
-
-NUMERIC_FEATURES = (
-    "transaction_hour",
-    "transaction_day_of_week",
-    "account_age_days",
-    "previous_chargebacks",
-    "is_international",
-    "is_high_risk_merchant_category",
-    "is_weekend",
-    "customer_total_transactions_30d",
-    "customer_risk_score",
-    "transaction_amount",
-    "avg_transaction_amount_30d_customer",
-    "transaction_velocity_1h",
-    "transaction_velocity_24h",
-)
-
-CATEGORICAL_FEATURES = (
-    "merchant_category",
-    "transaction_country",
-    "device_type",
-    "transaction_type",
-    "geo_location_region",
-)
-
-
-@dataclass(frozen=True, slots=True)
-class TransactionFeatures:
-    """Validated raw transaction, independent of HTTP and Pydantic."""
-
-    values: dict[str, float | int | str]
-
-    @property
-    def feature_columns(self) -> tuple[str, ...]:
-        return NUMERIC_FEATURES + CATEGORICAL_FEATURES
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,6 +20,23 @@ class ShapContribution:
     feature: str
     impact: float
     direction: Direction
+
+
+@dataclass(frozen=True, slots=True)
+class CardActivity:
+    """Historial reciente de la tarjeta, en términos legibles."""
+
+    previous_purchases: int
+    seconds_since_previous: float | None
+    average_amount: float | None
+    purchases_1h: int
+    amount_1h: float
+    purchases_24h: int
+    amount_24h: float
+    customer_age: int
+    customer_gender: str
+    city: str
+    state: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,6 +52,7 @@ class Assessment:
     top_driver_feature: str
     top_driver_impact_pct: float
     model_version: str
+    card: CardActivity | None = None
 
 
 def decide(probability: float, review_threshold: float, block_threshold: float) -> DecisionAction:
@@ -90,17 +72,16 @@ def risk_level(score: int) -> RiskLevel:
     return "low"
 
 
-def count_signals(values: dict[str, float | int | str]) -> int:
-    """Count interpretable risk flags, not model internals."""
+def count_signals(features: dict[str, float]) -> int:
+    """Señales de riesgo interpretables, calculadas sobre las variables del modelo."""
 
     flags = [
-        float(values["transaction_amount"]) >= 3_000,
-        float(values["previous_chargebacks"]) >= 2,
-        float(values["customer_risk_score"]) >= 0.65,
-        int(values["transaction_velocity_1h"]) >= 4,
-        int(values["transaction_velocity_24h"]) >= 10,
-        int(values["is_high_risk_merchant_category"]) == 1,
-        int(values["is_international"]) == 1,
-        int(values["account_age_days"]) < 30,
+        features["nocturna"] >= 1,
+        features["monto_vs_promedio_tarjeta"] >= 3,
+        features["monto_vs_categoria"] >= 5,
+        features["compras_1h"] >= 3,
+        features["compras_24h"] >= 8,
+        features["seg_desde_anterior"] < 600,
+        features["monto_24h"] >= 1_500,
     ]
     return sum(1 for flag in flags if flag)

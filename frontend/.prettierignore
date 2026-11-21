@@ -9,6 +9,10 @@ AGENTS.md
 CLAUDE.md
 .figma/design-context/
 
-# Generados por backend/scripts/build_evaluation.py
+# Generados por backend/scripts/build_sparkov_artifacts.py y experiments/comparativa_sparkov.py
 src/features/evaluation/evaluation-data.json
 src/features/analyzer/real-samples.json
+src/features/analyzer/scenarios.json
+src/features/analyzer/cards.json
+src/features/overview/anatomy.json
+src/features/benchmark/benchmark-data.json

@@ -17,31 +17,29 @@ def test_risk_level_boundaries(score: int, expected: str) -> None:
 
 
 def test_count_signals_detects_multiple_flags() -> None:
-    values = {
-        "transaction_amount": 4_000,
-        "previous_chargebacks": 3,
-        "customer_risk_score": 0.8,
-        "transaction_velocity_1h": 5,
-        "transaction_velocity_24h": 14,
-        "is_high_risk_merchant_category": 1,
-        "is_international": 1,
-        "account_age_days": 5,
+    features = {
+        "nocturna": 1,
+        "monto_vs_promedio_tarjeta": 6.0,
+        "monto_vs_categoria": 9.0,
+        "compras_1h": 4,
+        "compras_24h": 11,
+        "seg_desde_anterior": 120,
+        "monto_24h": 4_800,
     }
-    assert count_signals(values) == 8
+    assert count_signals(features) == 7
 
 
 def test_count_signals_returns_zero_for_low_risk() -> None:
-    values = {
-        "transaction_amount": 10,
-        "previous_chargebacks": 0,
-        "customer_risk_score": 0.1,
-        "transaction_velocity_1h": 0,
-        "transaction_velocity_24h": 1,
-        "is_high_risk_merchant_category": 0,
-        "is_international": 0,
-        "account_age_days": 900,
+    features = {
+        "nocturna": 0,
+        "monto_vs_promedio_tarjeta": 0.9,
+        "monto_vs_categoria": 1.1,
+        "compras_1h": 1,
+        "compras_24h": 3,
+        "seg_desde_anterior": 20_000,
+        "monto_24h": 180,
     }
-    assert count_signals(values) == 0
+    assert count_signals(features) == 0
 
 
 def test_extract_shap_vector_handles_two_dimensions() -> None:

@@ -3,28 +3,23 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { ChartHeader } from "@/components/ui/ChartHeader";
-import { formatCurrency, formatNumber } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 import { featureLabel } from "@/lib/labels";
 
 import { ConfusionMatrix } from "./components/ConfusionMatrix";
 import { CurveChart } from "./components/CurveChart";
 import { GlobalImportance } from "./components/GlobalImportance";
-import { EVALUATION, cheapestThreshold, costAt, countsAt, metricsOf } from "./data";
+import { EVALUATION, countsAt, metricsOf } from "./data";
 
 const CALIBRATED = EVALUATION.calibratedThreshold;
-const DEFAULT_REVIEW_COST = 25;
 const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
 
 export default function EvaluationPage() {
   const [threshold, setThreshold] = useState(CALIBRATED);
-  const [reviewCost, setReviewCost] = useState(DEFAULT_REVIEW_COST);
 
   const isCalibrated = threshold === CALIBRATED;
   const counts = isCalibrated ? EVALUATION.calibrated : countsAt(threshold);
   const metrics = metricsOf(counts);
-  const cost = costAt(counts, reviewCost);
-  const cheapest = cheapestThreshold(reviewCost);
-  const cheapestCost = costAt(cheapest, reviewCost);
   const { dataset } = EVALUATION;
   const topFeatures = EVALUATION.globalImportance.slice(0, 2);
 
@@ -106,66 +101,6 @@ export default function EvaluationPage() {
             )}
           </div>
           <ConfusionMatrix counts={counts} />
-        </Card>
-
-        <Card className="chart-card eval-cost">
-          <ChartHeader
-            title="Impacto económico"
-            subtitle="El mejor umbral depende de lo que cuesta cada error al negocio."
-          />
-          <div className="cost-input">
-            <label htmlFor="review-cost">Costo de revisar una alerta (US$)</label>
-            <input
-              id="review-cost"
-              type="number"
-              min={0}
-              max={1000}
-              step={5}
-              value={reviewCost}
-              onChange={(event) => setReviewCost(Math.max(0, Number(event.target.value) || 0))}
-            />
-            <small>
-              Supuesto editable. El fraude no detectado se valora con el monto real de cada
-              transacción.
-            </small>
-          </div>
-          <dl className="cost-list">
-            <div>
-              <dt>Fraude evitado</dt>
-              <dd className="cost-good">{formatCurrency(counts.caughtAmount)}</dd>
-            </div>
-            <div>
-              <dt>Fraude no detectado</dt>
-              <dd className="cost-bad">{formatCurrency(cost.missed)}</dd>
-            </div>
-            <div>
-              <dt>
-                Revisión de {formatNumber(metrics.alerts)} alertas × {formatCurrency(reviewCost)}
-              </dt>
-              <dd>{formatCurrency(cost.reviews)}</dd>
-            </div>
-            <div className="cost-total">
-              <dt>Costo total</dt>
-              <dd>{formatCurrency(cost.total)}</dd>
-            </div>
-          </dl>
-          <div className="cost-suggestion">
-            <p>
-              Con estos costos, el umbral más económico es{" "}
-              <strong>{cheapest.threshold.toFixed(2)}</strong> (costo total{" "}
-              {formatCurrency(cheapestCost.total)}): detecta {cheapest.tp} fraudes con{" "}
-              {formatNumber(cheapest.fp)} falsas alarmas.
-            </p>
-            {Math.abs(cheapest.threshold - threshold) >= 0.01 && (
-              <button
-                type="button"
-                className="button button-outline"
-                onClick={() => setThreshold(cheapest.threshold)}
-              >
-                Aplicar umbral {cheapest.threshold.toFixed(2)}
-              </button>
-            )}
-          </div>
         </Card>
       </div>
 

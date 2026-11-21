@@ -12,7 +12,8 @@ import {
   FAMILIES,
   FAMILY_LABELS,
   MODEL_RESULTS,
-  PRODUCTION_MODEL,
+  BENCHMARK_DATASET,
+  HISTORY_GAIN,
   type ModelFamily,
   type ModelResult,
 } from "./data";
@@ -101,9 +102,9 @@ export default function BenchmarkPage() {
   const sorted = [...MODEL_RESULTS].sort((a, b) => b[metric] - a[metric]);
   const activeMetric = METRICS.find((item) => item.key === metric) ?? METRICS[0];
   const winner = MODEL_RESULTS.find((model) => model.selected) ?? MODEL_RESULTS[0];
-  const runnerUp = [...MODEL_RESULTS]
-    .filter((model) => !model.selected)
-    .sort((a, b) => b.f1 - a.f1)[0];
+  const best = [...MODEL_RESULTS].sort((a, b) => b.f1 - a.f1)[0];
+  const gap = best.f1 - winner.f1;
+  const linear = MODEL_RESULTS.find((model) => model.id === "logistic");
 
   return (
     <div className="benchmark-page">
@@ -111,13 +112,13 @@ export default function BenchmarkPage() {
         <div>
           <h2 className="section-title">Sistema híbrido de detección de fraude</h2>
           <p className="section-subtitle">
-            Se entrenaron y compararon {MODEL_RESULTS.length} modelos de tres familias sobre el
-            mismo conjunto de prueba. El mejor se despliega en producción.
+            Se entrenaron y compararon {MODEL_RESULTS.length} modelos de tres familias con las
+            mismas variables y la misma división temporal. {BENCHMARK_DATASET}.
           </p>
         </div>
         <Badge variant="success">
           <span className="badge-dot" aria-hidden="true" />
-          Ganador: {winner.name} · F1 {winner.f1.toFixed(3)}
+          En producción: {winner.name} · F1 {winner.f1.toFixed(3)}
         </Badge>
       </div>
 
@@ -189,31 +190,32 @@ export default function BenchmarkPage() {
             <li>
               <Icon name="target" size={16} />
               <span>
-                <strong>Mejor F1 ({winner.f1.toFixed(3)})</strong> y mejor AUC-ROC (
-                {winner.aucRoc.toFixed(4)}) de los {MODEL_RESULTS.length} modelos
-                {runnerUp ? `, por delante de ${runnerUp.name} (${runnerUp.f1.toFixed(3)})` : ""}.
+                <strong>F1 {winner.f1.toFixed(3)}</strong>
+                {gap > 0
+                  ? `, a solo ${gap.toFixed(3)} del mejor (${best.name}, ${best.f1.toFixed(3)}): una diferencia dentro del margen de error.`
+                  : `, el mejor de los ${MODEL_RESULTS.length} modelos.`}
               </span>
             </li>
             <li>
               <Icon name="shield" size={16} />
               <span>
-                <strong>Detecta el {percent(winner.recall)} del fraude</strong> manteniendo una
-                precisión superior a la de la red neuronal y Random Forest.
+                <strong>La mayor precisión ({percent(winner.precision)})</strong>: casi todo lo que
+                bloquea es fraude real, así molesta muy poco a los clientes legítimos.
               </span>
             </li>
             <li>
               <Icon name="activity" size={16} />
               <span>
-                <strong>Explicable con SHAP</strong>: al ser un modelo de árboles, cada decisión se
-                descompone en el aporte de cada variable.
+                <strong>Un solo modelo, explicable con SHAP</strong>: los ensambles necesitan cuatro
+                modelos, incluida la red neuronal, para ganar unas milésimas de F1.
               </span>
             </li>
             <li>
               <Icon name="clock" size={16} />
               <span>
-                <strong>Optimizado y calibrado</strong>: con Optuna (Tier 2) su F1 sube de{" "}
-                {winner.f1.toFixed(3)} a <strong>{PRODUCTION_MODEL.tier2F1.toFixed(3)}</strong>, y la
-                calibración isotónica convierte el score en una probabilidad fiable.
+                <strong>El historial de la tarjeta es la clave</strong>: sin él, el mismo XGBoost
+                obtiene F1 {HISTORY_GAIN.withoutHistoryF1.toFixed(3)}; con él,{" "}
+                <strong>{HISTORY_GAIN.withHistoryF1.toFixed(3)}</strong>.
               </span>
             </li>
           </ul>
@@ -236,15 +238,17 @@ export default function BenchmarkPage() {
           rowKey={(model) => model.id}
         />
         <p className="benchmark-note">
-          La SVM alcanza el mayor recall ({percent(bestOf("recall"))}) pero con muy baja precisión:
-          generaría demasiadas falsas alarmas. Por eso la selección se basa en el F1-Score.
+          Las tres familias superan F1 0.9 con las mismas 36 variables. La regresión logística, un
+          modelo lineal, queda muy por debajo{linear ? ` (F1 ${linear.f1.toFixed(3)})` : ""}: el
+          fraude depende de combinaciones no lineales entre la compra y el historial de la tarjeta.
+          Cada umbral se eligió en la validación, no en la prueba.
         </p>
       </Card>
 
       <Card className="crisp-card">
         <ChartHeader
           title="Metodología CRISP-DM"
-          subtitle="Ciclo completo implementado en pipeline_completo.py"
+          subtitle="Ciclo implementado en backend/scripts/build_sparkov_artifacts.py"
         />
         <ol className="crisp-steps">
           {CRISP_DM_STEPS.map((step, index) => (

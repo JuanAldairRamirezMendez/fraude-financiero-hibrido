@@ -2,16 +2,20 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
+import { DEMO_SCENARIOS } from "../scenarios";
+import { BLOCK_THRESHOLD } from "../validation";
 import { TransactionForm } from "./TransactionForm";
 
+const AMOUNT = "Monto (US$)";
+
 describe("TransactionForm", () => {
-  it("envía una transacción válida con el contrato tipado", async () => {
+  it("envía una compra válida con el contrato tipado", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
 
     render(<TransactionForm isPending={false} onSubmit={onSubmit} />);
 
-    const amount = screen.getByLabelText("Monto de la transacción");
+    const amount = screen.getByLabelText(AMOUNT);
     await user.clear(amount);
     await user.type(amount, "1200");
     await user.click(screen.getByRole("button", { name: /analizar transacción/i }));
@@ -19,10 +23,10 @@ describe("TransactionForm", () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
-        transactionAmount: 1200,
-        decisionThreshold: 0.247,
-        previousChargebacks: 0,
-        merchantCategory: "travel",
+        amount: 1200,
+        cardId: DEMO_SCENARIOS[0].values.cardId,
+        category: DEMO_SCENARIOS[0].values.category,
+        decisionThreshold: Number(BLOCK_THRESHOLD),
       }),
       null,
     );
@@ -34,13 +38,13 @@ describe("TransactionForm", () => {
 
     render(<TransactionForm isPending={false} onSubmit={onSubmit} />);
 
-    const amount = screen.getByLabelText("Monto de la transacción");
+    const amount = screen.getByLabelText(AMOUNT);
     await user.clear(amount);
     await user.type(amount, "0");
     await user.click(screen.getByRole("button", { name: /analizar transacción/i }));
 
     expect(onSubmit).not.toHaveBeenCalled();
-    expect(screen.getByText(/Ingresa un valor entre 0.01 y 1000000/)).toBeInTheDocument();
+    expect(screen.getByText(/Ingresa un valor entre 0.01 y 50000/)).toBeInTheDocument();
     expect(amount).toHaveAttribute("aria-invalid", "true");
   });
 
@@ -56,6 +60,7 @@ describe("TransactionForm", () => {
   it("carga un escenario de demostración y lo envía", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
+    const scenario = DEMO_SCENARIOS.find((item) => item.id === "fraud")!;
 
     render(<TransactionForm isPending={false} onSubmit={onSubmit} />);
 
@@ -63,17 +68,18 @@ describe("TransactionForm", () => {
     await user.click(fraud);
 
     expect(fraud).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByLabelText("Monto de la transacción")).toHaveValue(7800);
-    expect(screen.getByText(/Apuestas a las 3 a\. m\./)).toBeInTheDocument();
+    expect(screen.getByLabelText(AMOUNT)).toHaveValue(Number(scenario.values.amount));
+    expect(screen.getByLabelText("Tarjeta del cliente")).toHaveValue(scenario.values.cardId);
+    expect(screen.getByText(scenario.description)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /analizar transacción/i }));
 
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
-        merchantCategory: "gambling",
-        transactionCountry: "NG",
-        previousChargebacks: 4,
-        transactionAmount: 7800,
+        cardId: scenario.values.cardId,
+        transactionTime: scenario.values.transactionTime,
+        category: scenario.values.category,
+        amount: Number(scenario.values.amount),
       }),
       null,
     );
@@ -88,7 +94,7 @@ describe("TransactionForm", () => {
     await user.click(normal);
     expect(normal).toHaveAttribute("aria-pressed", "true");
 
-    await user.type(screen.getByLabelText("Monto de la transacción"), "1");
+    await user.type(screen.getByLabelText(AMOUNT), "1");
 
     expect(normal).toHaveAttribute("aria-pressed", "false");
   });
@@ -106,8 +112,9 @@ describe("TransactionForm", () => {
 
     const [input, sample] = onSubmit.mock.calls[0];
     expect(sample).not.toBeNull();
-    expect(input.transactionAmount).toBe(Number(sample.values.transactionAmount));
-    expect(input.decisionThreshold).toBe(0.247);
+    expect(input.amount).toBe(sample.values.amount);
+    expect(input.cardId).toBe(sample.values.cardId);
+    expect(input.decisionThreshold).toBe(Number(BLOCK_THRESHOLD));
   });
 
   it("descarta la muestra real si se edita un campo", async () => {
@@ -117,7 +124,7 @@ describe("TransactionForm", () => {
     render(<TransactionForm isPending={false} onSubmit={onSubmit} />);
 
     await user.click(screen.getByRole("button", { name: /transacción real al azar/i }));
-    await user.type(screen.getByLabelText("Monto de la transacción"), "1");
+    await user.type(screen.getByLabelText(AMOUNT), "1");
     await user.click(screen.getByRole("button", { name: /analizar transacción/i }));
 
     expect(onSubmit.mock.calls[0][1]).toBeNull();

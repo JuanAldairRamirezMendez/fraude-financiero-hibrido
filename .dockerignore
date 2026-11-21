@@ -13,7 +13,7 @@ logs/
 reports/
 catboost_info/
 models_saved/*
-!models_saved/xgboost_tier2_isotonic.pkl
+!models_saved/xgboost_sparkov.json
 backend/artifacts/*.db
 backend/artifacts/*.sqlite*
 backend/.pytest_cache/

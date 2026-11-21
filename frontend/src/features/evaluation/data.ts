@@ -28,8 +28,7 @@ export interface ProfileBucket {
   fraudRate: number;
 }
 
-export type ProfileDimension =
-  "merchantCategory" | "transactionHour" | "transactionCountry" | "transactionType";
+export type ProfileDimension = "category" | "hour" | "channel" | "ageGroup";
 
 export interface EvaluationData {
   generatedAt: string;
@@ -72,18 +71,4 @@ export function countsAt(threshold: number): ConfusionCounts {
     Math.max(0, Math.round(threshold * 100)),
   );
   return EVALUATION.thresholds[index];
-}
-
-/** Costo total = fraude no detectado + revisiones manuales de las alertas emitidas. */
-export function costAt(counts: ConfusionCounts, reviewCost: number) {
-  const reviews = (counts.tp + counts.fp) * reviewCost;
-  return { reviews, missed: counts.missedAmount, total: counts.missedAmount + reviews };
-}
-
-export function cheapestThreshold(reviewCost: number): ConfusionCounts {
-  return EVALUATION.thresholds
-    .filter((row) => row.threshold > 0 && row.threshold < 1)
-    .reduce((best, row) =>
-      costAt(row, reviewCost).total < costAt(best, reviewCost).total ? row : best,
-    );
 }
