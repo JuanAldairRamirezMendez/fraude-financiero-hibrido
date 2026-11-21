@@ -2,8 +2,10 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
+import { formatNumber } from "@/lib/format";
+
 import EvaluationPage from "./EvaluationPage";
-import { EVALUATION, cheapestThreshold, costAt, countsAt, metricsOf } from "./data";
+import { EVALUATION, countsAt, metricsOf } from "./data";
 
 describe("datos de evaluación", () => {
   it("cubre el conjunto de prueba completo en cada umbral", () => {
@@ -20,16 +22,16 @@ describe("datos de evaluación", () => {
     expect(low.fp).toBeGreaterThan(high.fp);
   });
 
-  it("calcula métricas y costo de forma coherente", () => {
+  it("calcula las métricas de forma coherente", () => {
     const metrics = metricsOf({ tp: 3, fp: 1, fn: 1, tn: 95 });
     expect(metrics.precision).toBeCloseTo(0.75);
     expect(metrics.recall).toBeCloseTo(0.75);
     expect(metrics.f1).toBeCloseTo(0.75);
+  });
 
-    const cheapest = cheapestThreshold(25);
-    for (const row of EVALUATION.thresholds.filter((r) => r.threshold > 0 && r.threshold < 1)) {
-      expect(costAt(cheapest, 25).total).toBeLessThanOrEqual(costAt(row, 25).total);
-    }
+  it("ya no muestra la tarjeta de impacto económico", () => {
+    render(<EvaluationPage />);
+    expect(screen.queryByRole("heading", { name: "Impacto económico" })).not.toBeInTheDocument();
   });
 });
 
@@ -38,7 +40,7 @@ describe("EvaluationPage", () => {
     render(<EvaluationPage />);
 
     const matrix = screen.getByRole("table", { name: "Matriz de confusión" });
-    expect(within(matrix).getByText(String(EVALUATION.calibrated.tp))).toBeInTheDocument();
+    expect(within(matrix).getByText(formatNumber(EVALUATION.calibrated.tp))).toBeInTheDocument();
     expect(screen.getByText("calibrado")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "¿Qué aprendió el modelo?" })).toBeInTheDocument();
     expect(
@@ -53,7 +55,7 @@ describe("EvaluationPage", () => {
     fireEvent.change(screen.getByLabelText(/Umbral:/), { target: { value: "0.9" } });
 
     const matrix = screen.getByRole("table", { name: "Matriz de confusión" });
-    expect(within(matrix).getByText(String(countsAt(0.9).tp))).toBeInTheDocument();
+    expect(within(matrix).getByText(formatNumber(countsAt(0.9).tp))).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /Volver al umbral calibrado/ }));
     expect(screen.getByText("calibrado")).toBeInTheDocument();

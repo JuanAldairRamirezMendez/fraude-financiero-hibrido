@@ -27,8 +27,9 @@ class Settings(BaseSettings):
     debug: bool = False
     api_prefix: str = "/api/v1"
 
-    model_path: Path = PROJECT_ROOT / "models_saved" / "xgboost_tier2_isotonic.pkl"
-    preprocessor_path: Path = ARTIFACTS_DIR / "preprocessor.joblib"
+    model_path: Path = PROJECT_ROOT / "models_saved" / "xgboost_sparkov.json"
+    card_history_path: Path = ARTIFACTS_DIR / "card_history.parquet"
+    card_profiles_path: Path = ARTIFACTS_DIR / "card_profiles.json"
     feature_contract_path: Path = ARTIFACTS_DIR / "feature_contract.json"
     model_metadata_path: Path = ARTIFACTS_DIR / "model_metadata.json"
     snapshot_path: Path = ARTIFACTS_DIR / "overview_snapshot.json"

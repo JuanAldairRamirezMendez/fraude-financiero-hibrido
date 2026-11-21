@@ -57,7 +57,7 @@ def _seed_alerts(repository: SqlFraudRepository, snapshot: SnapshotService) -> N
 def create_app(settings: Settings | None = None) -> FastAPI:
     app_settings = settings or get_settings()
     configure_logging(app_settings.log_level)
-    app_settings.preprocessor_path.parent.mkdir(parents=True, exist_ok=True)
+    app_settings.card_history_path.parent.mkdir(parents=True, exist_ok=True)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -81,7 +81,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             store = ArtifactStore.load(
                 model_path=app_settings.model_path,
-                preprocessor_path=app_settings.preprocessor_path,
+                card_history_path=app_settings.card_history_path,
+                card_profiles_path=app_settings.card_profiles_path,
                 contract_path=app_settings.feature_contract_path,
                 metadata_path=app_settings.model_metadata_path,
             )
@@ -127,7 +128,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         title=app_settings.app_name,
         version=app_settings.app_version,
         description=(
-            "API de detección de fraude con XGBoost calibrado, explicaciones SHAP, "
+            "API de detección de fraude con XGBoost, historial por tarjeta, explicaciones SHAP, "
             "snapshot real del dataset y salud de modelos."
         ),
         docs_url=f"{app_settings.api_prefix}/docs" if app_settings.enable_docs else None,

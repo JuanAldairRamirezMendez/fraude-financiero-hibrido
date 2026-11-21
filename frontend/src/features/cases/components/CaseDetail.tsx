@@ -3,14 +3,8 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
 import { formatCurrency, formatDateTime, formatRelative } from "@/lib/format";
-import {
-  COUNTRY_LABELS,
-  DEVICE_LABELS,
-  MERCHANT_CATEGORY_LABELS,
-  REGION_LABELS,
-  TRANSACTION_TYPE_LABELS,
-  featureLabel,
-} from "@/lib/labels";
+import { cardInfo } from "@/features/analyzer/cards";
+import { GENDER_LABELS, categoryLabel, featureLabel } from "@/lib/labels";
 
 import {
   STATUS_LABELS,
@@ -22,58 +16,92 @@ import {
 } from "../api";
 
 const DAYS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const NIGHT_HOURS = new Set([22, 23, 0, 1, 2, 3]);
 
 type Row = { label: string; value: string; highlight?: boolean };
+type Transaction = Record<string, string | number>;
+type Card = NonNullable<NonNullable<FraudCase["decision"]>["card"]>;
 
-function transactionRows(transaction: Record<string, string | number>): Row[] {
-  const num = (key: string) => Number(transaction[key] ?? 0);
-  const str = (key: string) => String(transaction[key] ?? "");
-  const amount = num("transactionAmount");
-  const average = num("avgTransactionAmount30dCustomer");
+function elapsed(seconds: number): string {
+  if (seconds < 3_600) return `${Math.max(1, Math.round(seconds / 60))} min`;
+  if (seconds < 86_400) return `${Math.round(seconds / 3_600)} h`;
+  return `${Math.round(seconds / 86_400)} días`;
+}
+
+/** Compra con tarjeta (modelo Sparkov). */
+function cardRows(transaction: Transaction, card: Card | null | undefined): Row[] {
+  const amount = Number(transaction.amount ?? 0);
+  const time = String(transaction.transactionTime ?? "");
+  const hour = time ? new Date(time).getHours() : -1;
+  const info = cardInfo(String(transaction.cardId));
+  const average = card?.averageAmount ?? 0;
   const ratio = average > 0 ? amount / average : 0;
-
-  return [
+  const rows: Row[] = [
     {
       label: "Monto",
       value: `${formatCurrency(amount)}${ratio >= 1.5 ? ` · ${ratio.toFixed(1)}× su promedio` : ""}`,
       highlight: ratio >= 3,
     },
-    { label: "Promedio del cliente (30 d)", value: formatCurrency(average) },
+    { label: "Comercio", value: categoryLabel(String(transaction.category ?? "")) },
     {
-      label: "Comercio",
-      value: MERCHANT_CATEGORY_LABELS[str("merchantCategory")] ?? str("merchantCategory"),
-      highlight: num("isHighRiskMerchantCategory") === 1,
+      label: "Momento",
+      value: time ? formatDateTime(time) : "—",
+      highlight: NIGHT_HOURS.has(hour),
     },
     {
-      label: "País / región",
-      value: `${COUNTRY_LABELS[str("transactionCountry")] ?? str("transactionCountry")} · ${REGION_LABELS[str("geoLocationRegion")] ?? str("geoLocationRegion")}`,
-      highlight: num("isInternational") === 1,
+      label: "Distancia al comercio",
+      value: `${Number(transaction.merchantDistanceKm ?? 0).toFixed(1)} km`,
     },
     {
-      label: "Canal",
-      value: `${TRANSACTION_TYPE_LABELS[str("transactionType")] ?? str("transactionType")} · ${DEVICE_LABELS[str("deviceType")] ?? str("deviceType")}`,
+      label: "Tarjeta",
+      value: info
+        ? `${info.id} · ${GENDER_LABELS[info.gender] ?? info.gender}, ${info.birthYear} · ${info.city}, ${info.state}`
+        : String(transaction.cardId ?? "—"),
     },
+  ];
+  if (card) {
+    rows.push(
+      {
+        label: "Compras en la última hora",
+        value: `${card.purchases1h} · ${formatCurrency(card.amount1h)}`,
+        highlight: card.purchases1h >= 3,
+      },
+      {
+        label: "Compras en 24 h",
+        value: `${card.purchases24h} · ${formatCurrency(card.amount24h)}`,
+        highlight: card.purchases24h >= 8 || card.amount24h >= 1_500,
+      },
+      {
+        label: "Compra anterior",
+        value:
+          card.secondsSincePrevious == null
+            ? "Primera compra"
+            : `hace ${elapsed(card.secondsSincePrevious)}`,
+        highlight: card.secondsSincePrevious != null && card.secondsSincePrevious < 600,
+      },
+    );
+  }
+  return rows;
+}
+
+/** Casos guardados con el modelo anterior (antes de migrar a Sparkov). */
+function legacyRows(transaction: Transaction): Row[] {
+  const num = (key: string) => Number(transaction[key] ?? 0);
+  const str = (key: string) => String(transaction[key] ?? "");
+  return [
+    { label: "Monto", value: formatCurrency(num("transactionAmount")) },
+    { label: "Comercio", value: categoryLabel(str("merchantCategory")) },
+    { label: "País / región", value: `${str("transactionCountry")} · ${str("geoLocationRegion")}` },
     {
       label: "Momento",
       value: `${DAYS[num("transactionDayOfWeek")] ?? "—"}, ${String(num("transactionHour")).padStart(2, "0")}:00`,
     },
-    {
-      label: "Antigüedad de la cuenta",
-      value: `${num("accountAgeDays")} días`,
-      highlight: num("accountAgeDays") < 60,
-    },
-    {
-      label: "Contracargos previos",
-      value: String(num("previousChargebacks")),
-      highlight: num("previousChargebacks") >= 2,
-    },
-    { label: "Score de riesgo del cliente", value: num("customerRiskScore").toFixed(2) },
-    {
-      label: "Velocidad",
-      value: `${num("transactionVelocity1h")} en 1 h · ${num("transactionVelocity24h")} en 24 h`,
-      highlight: num("transactionVelocity1h") >= 3,
-    },
+    { label: "Contracargos previos", value: String(num("previousChargebacks")) },
   ];
+}
+
+function transactionRows(transaction: Transaction, card?: Card | null): Row[] {
+  return "cardId" in transaction ? cardRows(transaction, card) : legacyRows(transaction);
 }
 
 interface CaseDetailProps {
@@ -168,7 +196,7 @@ export function CaseDetail({ item, currentUser }: CaseDetailProps) {
         <section className="case-section" aria-label="Datos de la transacción">
           <h3>Datos de la transacción</h3>
           <dl className="case-facts">
-            {transactionRows(decision.transaction).map((row) => (
+            {transactionRows(decision.transaction, decision.card).map((row) => (
               <div key={row.label} className={row.highlight ? "is-flagged" : undefined}>
                 <dt>{row.label}</dt>
                 <dd>{row.value}</dd>

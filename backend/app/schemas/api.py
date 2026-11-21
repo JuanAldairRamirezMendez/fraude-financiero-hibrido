@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -13,6 +14,22 @@ AlertType = Literal["Feature drift", "Data quality", "Prediction drift", "Perfor
 CaseStatus = Literal["new", "in_review", "escalated", "resolved"]
 CaseVerdict = Literal["confirmed_fraud", "false_positive", "inconclusive"]
 DecisionAction = Literal["approve", "review", "block"]
+MerchantCategory = Literal[
+    "entertainment",
+    "food_dining",
+    "gas_transport",
+    "grocery_net",
+    "grocery_pos",
+    "health_fitness",
+    "home",
+    "kids_pets",
+    "misc_net",
+    "misc_pos",
+    "personal_care",
+    "shopping_net",
+    "shopping_pos",
+    "travel",
+]
 
 
 class ApiModel(BaseModel):
@@ -24,76 +41,36 @@ class ApiModel(BaseModel):
 
 
 class AnalyzeRequest(ApiModel):
-    transaction_hour: int = Field(ge=0, le=23)
-    transaction_day_of_week: int = Field(ge=0, le=6)
-    account_age_days: int = Field(ge=0, le=20_000)
-    previous_chargebacks: int = Field(ge=0, le=50)
-    merchant_category: str = Field(min_length=1, max_length=64)
-    transaction_country: str = Field(min_length=1, max_length=64)
-    device_type: str = Field(min_length=1, max_length=64)
-    transaction_type: str = Field(min_length=1, max_length=64)
-    geo_location_region: str = Field(min_length=1, max_length=64)
-    is_international: int = Field(ge=0, le=1)
-    is_high_risk_merchant_category: int = Field(ge=0, le=1)
-    is_weekend: int = Field(ge=0, le=1)
-    customer_total_transactions_30d: int = Field(
-        ge=0, le=500, alias="customerTotalTransactions30d"
-    )
-    customer_risk_score: float = Field(ge=0, le=10)
-    transaction_amount: float = Field(gt=0, le=1_000_000)
-    avg_transaction_amount_30d_customer: float = Field(
-        ge=0, le=1_000_000, alias="avgTransactionAmount30dCustomer"
-    )
-    transaction_velocity_1h: int = Field(ge=0, le=100, alias="transactionVelocity1h")
-    transaction_velocity_24h: int = Field(ge=0, le=500, alias="transactionVelocity24h")
-    # Desde decision_threshold la transacción se bloquea y pasa a la cola del analista.
-    # block_threshold es opcional: si se envía uno mayor, la franja intermedia queda
-    # retenida para revisión (política de tres niveles, desactivada por defecto).
-    decision_threshold: float = Field(default=0.5, ge=0, le=1)
+    """Una compra con tarjeta. El historial de la tarjeta lo aporta el servidor."""
+
+    card_id: str = Field(pattern=r"^TARJ-\d{4}$", examples=["TARJ-0471"])
+    transaction_time: datetime = Field(examples=["2020-10-15T22:23:52"])
+    amount: float = Field(gt=0, le=50_000)
+    category: MerchantCategory
+    merchant_distance_km: float = Field(ge=0, le=1_000)
+    # Desde decision_threshold la transacción se bloquea y pasa a la cola del analista; si no se
+    # envía, se usa el umbral calibrado del modelo. block_threshold es opcional: si se envía uno
+    # mayor, la franja intermedia queda retenida para revisión (desactivada por defecto).
+    decision_threshold: float | None = Field(default=None, ge=0, le=1)
     block_threshold: float | None = Field(default=None, ge=0, le=1)
 
-    @property
-    def effective_block_threshold(self) -> float:
-        return self.decision_threshold if self.block_threshold is None else self.block_threshold
+    @field_validator("transaction_time")
+    @classmethod
+    def naive_time(cls, value: datetime) -> datetime:
+        """El dataset usa hora local sin zona; una hora con zona se lleva a UTC sin zona."""
+        if value.tzinfo is not None:
+            value = value.astimezone(UTC).replace(tzinfo=None)
+        return value
 
     @model_validator(mode="after")
     def thresholds_in_order(self) -> AnalyzeRequest:
-        if self.block_threshold is not None and self.block_threshold < self.decision_threshold:
+        if (
+            self.block_threshold is not None
+            and self.decision_threshold is not None
+            and self.block_threshold < self.decision_threshold
+        ):
             raise ValueError("blockThreshold debe ser mayor o igual que decisionThreshold.")
         return self
-
-    @field_validator(
-        "merchant_category",
-        "transaction_country",
-        "device_type",
-        "transaction_type",
-        "geo_location_region",
-    )
-    @classmethod
-    def strip_categories(cls, value: str) -> str:
-        return value.strip()
-
-    def to_feature_values(self) -> dict[str, float | int | str]:
-        return {
-            "transaction_hour": self.transaction_hour,
-            "transaction_day_of_week": self.transaction_day_of_week,
-            "account_age_days": self.account_age_days,
-            "previous_chargebacks": self.previous_chargebacks,
-            "merchant_category": self.merchant_category,
-            "transaction_country": self.transaction_country,
-            "device_type": self.device_type,
-            "transaction_type": self.transaction_type,
-            "geo_location_region": self.geo_location_region,
-            "is_international": self.is_international,
-            "is_high_risk_merchant_category": self.is_high_risk_merchant_category,
-            "is_weekend": self.is_weekend,
-            "customer_total_transactions_30d": self.customer_total_transactions_30d,
-            "customer_risk_score": self.customer_risk_score,
-            "transaction_amount": self.transaction_amount,
-            "avg_transaction_amount_30d_customer": self.avg_transaction_amount_30d_customer,
-            "transaction_velocity_1h": self.transaction_velocity_1h,
-            "transaction_velocity_24h": self.transaction_velocity_24h,
-        }
 
 
 class ShapContribution(ApiModel):
@@ -105,6 +82,22 @@ class ShapContribution(ApiModel):
 class TopDriver(ApiModel):
     feature: str
     impact_pct: float = Field(ge=0, le=100)
+
+
+class CardContext(ApiModel):
+    """Historial reciente de la tarjeta usado por el modelo, en términos legibles."""
+
+    previous_purchases: int = Field(ge=0)
+    seconds_since_previous: float | None = None
+    average_amount: float | None = None
+    purchases_1h: int = Field(ge=0, alias="purchases1h")
+    amount_1h: float = Field(alias="amount1h")
+    purchases_24h: int = Field(ge=0, alias="purchases24h")
+    amount_24h: float = Field(alias="amount24h")
+    customer_age: int
+    customer_gender: str
+    city: str
+    state: str
 
 
 class AnalyzeResponse(ApiModel):
@@ -125,13 +118,14 @@ class AnalyzeResponse(ApiModel):
     block_threshold: float = Field(default=0.5, ge=0, le=1)
     case_id: str | None = None
     case_number: str | None = None
+    card: CardContext | None = None
 
 
 class FieldMetadata(ApiModel):
     name: str
     label: str
     group: str
-    kind: Literal["integer", "number", "binary", "category"]
+    kind: Literal["integer", "number", "binary", "category", "datetime"]
     required: bool
     default: float | int | str
     options: list[str] = Field(default_factory=list)
@@ -194,6 +188,7 @@ class TransactionItem(ApiModel):
     score: int
     status: TransactionStatus
     risk_label: int
+    occurred_at: str | None = None
 
 
 class TransactionPage(ApiModel):
@@ -317,6 +312,7 @@ class CaseDecision(ApiModel):
     model_version: str
     transaction: dict[str, float | int | str]
     shap: list[ShapContribution]
+    card: CardContext | None = None
 
 
 class CaseResponse(ApiModel):

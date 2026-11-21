@@ -18,7 +18,7 @@ las rutas del navegador hacia `index.html`. El mismo servicio expone la API en
 
 - Docker y Docker Compose para el entorno local.
 - Python 3.13 y Node 22 para validaciones directas.
-- El modelo `models_saved/xgboost_tier2_isotonic.pkl`.
+- El modelo `models_saved/xgboost_sparkov.json` (formato nativo de XGBoost).
 - Los artefactos de `backend/artifacts/`.
 - PostgreSQL en producción.
 

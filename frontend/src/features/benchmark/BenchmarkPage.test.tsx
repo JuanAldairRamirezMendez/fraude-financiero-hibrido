@@ -40,15 +40,15 @@ describe("BenchmarkPage", () => {
         "listitem",
       )[0];
 
-    expect(firstBar()).toHaveTextContent("XGBoost");
+    expect(firstBar()).toHaveTextContent("Ensamble stacking");
 
-    await user.click(screen.getByRole("button", { name: "Recall" }));
+    await user.click(screen.getByRole("button", { name: "Precisión" }));
 
-    expect(screen.getByRole("button", { name: "Recall" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Precisión" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
-    expect(firstBar()).toHaveTextContent("SVM lineal");
+    expect(firstBar()).toHaveTextContent("XGBoost");
   });
 
   it("enlaza al analizador para probar el modelo", () => {

@@ -1,5 +1,5 @@
-import { useState, type FormEvent, type RefObject } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import type { RefObject } from "react";
+import { NavLink } from "react-router-dom";
 
 import { Icon } from "@/components/ui/Icon";
 
@@ -18,15 +18,6 @@ export function AppHeader({
   menuButtonRef,
   onToggleMenu,
 }: AppHeaderProps) {
-  const navigate = useNavigate();
-  const [query, setQuery] = useState("");
-
-  function handleSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const term = query.trim();
-    navigate(term ? `/?q=${encodeURIComponent(term)}` : "/");
-  }
-
   return (
     <header className="app-header">
       <div className="header-title">
@@ -48,19 +39,7 @@ export function AppHeader({
       </div>
 
       <div className="header-actions">
-        <form className="search" role="search" onSubmit={handleSearch}>
-          <Icon name="search" size={17} />
-          <label className="sr-only" htmlFor="global-search">
-            Buscar transacciones por ID o cliente
-          </label>
-          <input
-            id="global-search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar transacciones..."
-          />
-        </form>
-        <NavLink className="icon-button" to="/models" aria-label="Ver alertas del modelo">
+        <NavLink className="icon-button" to="/cases" aria-label="Ver casos pendientes de revisión">
           <Icon name="bell" size={19} />
         </NavLink>
       </div>

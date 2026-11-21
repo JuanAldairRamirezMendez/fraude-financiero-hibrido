@@ -15,7 +15,6 @@ export const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { to: "/benchmark", label: "Comparativa IA", icon: "target" },
   { to: "/analyzer", label: "Analizador", icon: "activity" },
   { to: "/cases", label: "Revisión de casos", icon: "alert", showPendingCases: true },
-  { to: "/models", label: "Salud del modelo", icon: "model" },
   { to: "/chat", label: "Copiloto IA", icon: "message" },
 ];
 
@@ -30,7 +29,6 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/analyzer": { eyebrow: "Decisión en tiempo real", title: "Analizador de transacciones" },
   "/benchmark": { eyebrow: "IA híbrida · CRISP-DM", title: "Comparativa de modelos" },
   "/cases": { eyebrow: "Humano en el circuito", title: "Revisión de casos" },
-  "/models": { eyebrow: "Monitoreo y gobierno", title: "Salud del modelo" },
   "/chat": { eyebrow: "Asistente inteligente", title: "Copiloto IA" },
 };
 

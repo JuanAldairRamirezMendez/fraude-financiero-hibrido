@@ -23,6 +23,7 @@ function mapTransaction(item: OverviewQuery["transactions"]["items"][number]): T
     type: item.transactionType,
     score: item.score,
     status: item.status,
+    occurredAt: item.occurredAt ?? undefined,
   };
 }
 

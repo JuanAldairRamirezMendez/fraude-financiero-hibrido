@@ -1,51 +1,55 @@
+import { EVALUATION } from "@/features/evaluation/data";
+
+import { CARD_IDS } from "./cards";
+import scenarios from "./scenarios.json";
 import type { TransactionInput } from "./types";
 
 export interface TransactionFormValues {
-  transactionHour: string;
-  transactionDayOfWeek: string;
-  accountAgeDays: string;
-  previousChargebacks: string;
-  merchantCategory: string;
-  transactionCountry: string;
-  deviceType: string;
-  transactionType: string;
-  geoLocationRegion: string;
-  isInternational: string;
-  isHighRiskMerchantCategory: string;
-  isWeekend: string;
-  customerTotalTransactions30d: string;
-  customerRiskScore: string;
-  transactionAmount: string;
-  avgTransactionAmount30dCustomer: string;
-  transactionVelocity1h: string;
-  transactionVelocity24h: string;
+  cardId: string;
+  transactionTime: string;
+  amount: string;
+  category: string;
+  merchantDistanceKm: string;
   decisionThreshold: string;
 }
 
+export const CATEGORIES = [
+  "entertainment",
+  "food_dining",
+  "gas_transport",
+  "grocery_net",
+  "grocery_pos",
+  "health_fitness",
+  "home",
+  "kids_pets",
+  "misc_net",
+  "misc_pos",
+  "personal_care",
+  "shopping_net",
+  "shopping_pos",
+  "travel",
+] as const;
+
+type Category = (typeof CATEGORIES)[number];
+
 /** Umbral calibrado del modelo: desde aquí la transacción se bloquea y pasa al analista. */
-export const BLOCK_THRESHOLD = "0.247";
+export const BLOCK_THRESHOLD = EVALUATION.calibratedThreshold.toFixed(3);
+
+/** El historial de las tarjetas cubre el periodo del dataset. */
+export const FIRST_DAY = "2019-01-01T00:00:00";
+export const LAST_DAY = "2020-12-31T23:59:59";
 
 export type FieldErrors = Partial<Record<keyof TransactionFormValues, string>>;
 
+const normal = scenarios[0].values;
+
+/** El formulario arranca con la compra habitual de los escenarios de demostración. */
 export const INITIAL_FORM_VALUES: TransactionFormValues = {
-  transactionHour: "11",
-  transactionDayOfWeek: "3",
-  accountAgeDays: "703",
-  previousChargebacks: "0",
-  merchantCategory: "travel",
-  transactionCountry: "US",
-  deviceType: "mobile",
-  transactionType: "online",
-  geoLocationRegion: "North America",
-  isInternational: "0",
-  isHighRiskMerchantCategory: "0",
-  isWeekend: "0",
-  customerTotalTransactions30d: "6",
-  customerRiskScore: "0.15",
-  transactionAmount: "484.15",
-  avgTransactionAmount30dCustomer: "651.035",
-  transactionVelocity1h: "0",
-  transactionVelocity24h: "3",
+  cardId: normal.cardId,
+  transactionTime: normal.transactionTime,
+  amount: String(normal.amount),
+  category: normal.category,
+  merchantDistanceKm: String(normal.merchantDistanceKm),
   decisionThreshold: BLOCK_THRESHOLD,
 };
 
@@ -54,51 +58,41 @@ interface ValidationResult {
   input: TransactionInput | null;
 }
 
-const NUMERIC_FIELDS: Array<[keyof TransactionFormValues, number, number, boolean]> = [
-  ["transactionHour", 0, 23, true],
-  ["transactionDayOfWeek", 0, 6, true],
-  ["accountAgeDays", 0, 20_000, true],
-  ["previousChargebacks", 0, 50, true],
-  ["isInternational", 0, 1, true],
-  ["isHighRiskMerchantCategory", 0, 1, true],
-  ["isWeekend", 0, 1, true],
-  ["customerTotalTransactions30d", 0, 500, true],
-  ["customerRiskScore", 0, 10, false],
-  ["transactionAmount", 0.01, 1_000_000, false],
-  ["avgTransactionAmount30dCustomer", 0, 1_000_000, false],
-  ["transactionVelocity1h", 0, 100, true],
-  ["transactionVelocity24h", 0, 500, true],
-  ["decisionThreshold", 0, 1, false],
+const NUMERIC_FIELDS: Array<[keyof TransactionFormValues, number, number]> = [
+  ["amount", 0.01, 50_000],
+  ["merchantDistanceKm", 0, 1_000],
+  ["decisionThreshold", 0, 1],
 ];
 
-const CATEGORY_FIELDS: Array<keyof TransactionFormValues> = [
-  "merchantCategory",
-  "transactionCountry",
-  "deviceType",
-  "transactionType",
-  "geoLocationRegion",
-];
+/** Acepta "AAAA-MM-DDTHH:MM" (sin segundos) además de "AAAA-MM-DDTHH:MM:SS". */
+export function normalizeDateTime(value: string): string {
+  const trimmed = value.trim();
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(trimmed) ? `${trimmed}:00` : trimmed;
+}
 
 export function validateTransactionForm(values: TransactionFormValues): ValidationResult {
   const errors: FieldErrors = {};
   const parsed = {} as Record<string, number>;
 
-  for (const [field, minimum, maximum, integer] of NUMERIC_FIELDS) {
+  for (const [field, minimum, maximum] of NUMERIC_FIELDS) {
     const value = Number(values[field].replace(",", "."));
     parsed[field] = value;
-    if (
-      !Number.isFinite(value) ||
-      value < minimum ||
-      value > maximum ||
-      (integer && !Number.isInteger(value))
-    ) {
-      errors[field] =
-        `Ingresa un valor entre ${minimum} y ${maximum}${integer ? " sin decimales" : ""}.`;
+    if (!Number.isFinite(value) || value < minimum || value > maximum) {
+      errors[field] = `Ingresa un valor entre ${minimum} y ${maximum}.`;
     }
   }
 
-  for (const field of CATEGORY_FIELDS) {
-    if (!values[field].trim()) errors[field] = "Selecciona un valor válido.";
+  if (!CARD_IDS.has(values.cardId)) errors.cardId = "Selecciona una tarjeta del catálogo.";
+  if (!(CATEGORIES as readonly string[]).includes(values.category)) {
+    errors.category = "Selecciona una categoría válida.";
+  }
+
+  const when = normalizeDateTime(values.transactionTime);
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(when) || Number.isNaN(Date.parse(when))) {
+    errors.transactionTime = "Ingresa una fecha y hora válidas.";
+  } else if (when < FIRST_DAY || when > LAST_DAY) {
+    errors.transactionTime =
+      "Usa una fecha entre enero de 2019 y diciembre de 2020 (periodo del dataset).";
   }
 
   if (Object.keys(errors).length > 0) return { errors, input: null };
@@ -106,24 +100,11 @@ export function validateTransactionForm(values: TransactionFormValues): Validati
   return {
     errors,
     input: {
-      transactionHour: parsed.transactionHour,
-      transactionDayOfWeek: parsed.transactionDayOfWeek,
-      accountAgeDays: parsed.accountAgeDays,
-      previousChargebacks: parsed.previousChargebacks,
-      merchantCategory: values.merchantCategory,
-      transactionCountry: values.transactionCountry,
-      deviceType: values.deviceType,
-      transactionType: values.transactionType,
-      geoLocationRegion: values.geoLocationRegion,
-      isInternational: parsed.isInternational,
-      isHighRiskMerchantCategory: parsed.isHighRiskMerchantCategory,
-      isWeekend: parsed.isWeekend,
-      customerTotalTransactions30d: parsed.customerTotalTransactions30d,
-      customerRiskScore: parsed.customerRiskScore,
-      transactionAmount: parsed.transactionAmount,
-      avgTransactionAmount30dCustomer: parsed.avgTransactionAmount30dCustomer,
-      transactionVelocity1h: parsed.transactionVelocity1h,
-      transactionVelocity24h: parsed.transactionVelocity24h,
+      cardId: values.cardId,
+      transactionTime: when,
+      amount: parsed.amount,
+      category: values.category as Category,
+      merchantDistanceKm: parsed.merchantDistanceKm,
       // Un solo umbral: aprobar o bloquear (sin franja intermedia de revisión).
       decisionThreshold: parsed.decisionThreshold,
       blockThreshold: parsed.decisionThreshold,

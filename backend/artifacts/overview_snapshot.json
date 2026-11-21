@@ -1,106 +1,100 @@
 {
-  "generatedAt": "2026-11-14T21:18:17.638083+00:00",
-  "windowLabel": "Dataset snapshot · 100,000 rows",
-  "totalTransactions": 100000,
+  "generatedAt": "2026-11-21T22:44:27.100796+00:00",
+  "windowLabel": "Periodo de prueba jun–dic 2020 · 555,719 transacciones",
+  "totalTransactions": 555719,
   "kpis": [
     {
       "id": "transactions",
       "label": "Total transactions",
-      "value": "100,000",
-      "trend": "Full dataset snapshot",
+      "value": "555,719",
+      "trend": "Test period Jun–Dec 2020",
       "dataPoints": [
-        12500,
-        12500,
-        12500,
-        12500,
-        12500,
-        12500,
-        12500,
-        12500
+        30058,
+        85848,
+        88759,
+        69533,
+        69348,
+        72635,
+        139538
       ]
     },
     {
       "id": "fraud-rate",
       "label": "Fraud rate",
-      "value": "1.50%",
-      "trend": "1500 labelled fraud cases",
+      "value": "0.39%",
+      "trend": "2145 labelled fraud cases",
       "dataPoints": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0
+        0.004425,
+        0.003739,
+        0.004676,
+        0.00489,
+        0.005537,
+        0.004048,
+        0.001849
       ]
     },
     {
       "id": "f1-score",
       "label": "Model F1-score",
-      "value": "0.726",
-      "trend": "Calibrated model · threshold 0.247 · test set",
+      "value": "0.926",
+      "trend": "Test set · threshold 0.466",
       "dataPoints": [
-        0.726027,
-        0.726027,
-        0.726027,
-        0.726027,
-        0.726027,
-        0.726027,
-        0.726027,
-        0.726027
+        0.925908,
+        0.925908,
+        0.925908,
+        0.925908,
+        0.925908,
+        0.925908
       ]
     },
     {
       "id": "pending-alerts",
       "label": "Pending alerts",
-      "value": "1,502",
-      "trend": "1,502 blocked at threshold 0.247",
+      "value": "1,931",
+      "trend": "1,931 blocked at threshold 0.466",
       "dataPoints": [
-        1502,
-        1502,
-        1502,
-        1502,
-        1502,
-        1502,
-        1502,
-        1502
+        1931,
+        1931,
+        1931,
+        1931,
+        1931,
+        1931
       ]
     }
   ],
   "drift": {
-    "psi": 3e-05,
+    "psi": 6.2e-05,
     "psiThreshold": 0.2,
-    "driftShiftPct": -0.2483,
-    "velocityPsi": 2.1e-05
+    "driftShiftPct": -1.3621,
+    "velocityPsi": 0.025166
   },
   "statusCounts": {
-    "Approved": 98498,
-    "Flagged": 1502
+    "Flagged": 1931,
+    "Approved": 553788
   },
   "alerts": [
     {
       "id": "ALT-SNAPSHOT-AMOUNT",
-      "occurredAt": "2026-11-14T21:18:17.638083+00:00",
-      "modelId": "XGB-TRANSACTION-TIER2",
+      "occurredAt": "2026-11-21T22:44:27.100796+00:00",
+      "modelId": "XGB-SPARKOV",
       "alertType": "Feature drift",
       "detail": "Transaction amount PSI 0.000 remains within the 0.20 warning threshold.",
       "status": "RESOLVED"
     },
     {
       "id": "ALT-SNAPSHOT-VELOCITY",
-      "occurredAt": "2026-11-14T21:18:17.638083+00:00",
-      "modelId": "XGB-TRANSACTION-TIER2",
+      "occurredAt": "2026-11-21T22:44:27.100796+00:00",
+      "modelId": "XGB-SPARKOV",
       "alertType": "Feature drift",
-      "detail": "24h transaction velocity PSI 0.000 remains within the configured threshold.",
+      "detail": "24h transaction velocity PSI 0.025 remains within the configured threshold.",
       "status": "RESOLVED"
     },
     {
       "id": "ALT-SNAPSHOT-ARTIFACT",
-      "occurredAt": "2026-11-14T21:18:17.638083+00:00",
-      "modelId": "XGB-TRANSACTION-TIER2",
+      "occurredAt": "2026-11-21T22:44:27.100796+00:00",
+      "modelId": "XGB-SPARKOV",
       "alertType": "Performance",
-      "detail": "Artifact xgboost-tier2-isotonic-f88d84b82069 loaded with 46 features.",
+      "detail": "Artifact xgboost-sparkov-d238ef1ded39 loaded with 36 features.",
       "status": "RESOLVED"
     }
   ]

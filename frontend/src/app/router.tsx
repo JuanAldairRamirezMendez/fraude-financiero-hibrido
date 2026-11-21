@@ -13,7 +13,6 @@ import { RouteErrorPage } from "./pages/RouteErrorPage";
 
 const OverviewPage = lazy(() => import("@/features/overview/OverviewPage"));
 const AnalyzerPage = lazy(() => import("@/features/analyzer/AnalyzerPage"));
-const ModelsPage = lazy(() => import("@/features/models/ModelsPage"));
 const BenchmarkPage = lazy(() => import("@/features/benchmark/BenchmarkPage"));
 const EvaluationPage = lazy(() => import("@/features/evaluation/EvaluationPage"));
 
@@ -35,7 +34,6 @@ export const router = createBrowserRouter([
           { path: "evaluation", element: withSuspense(<EvaluationPage />) },
           { path: "analyzer", element: withSuspense(<AnalyzerPage />) },
           { path: "benchmark", element: withSuspense(<BenchmarkPage />) },
-          { path: "models", element: withSuspense(<ModelsPage />) },
           { path: "cases", element: withSuspense(<CasesPage />) },
           { path: "chat", element: withSuspense(<ChatPage />) },
           { path: "*", element: <NotFoundPage /> },

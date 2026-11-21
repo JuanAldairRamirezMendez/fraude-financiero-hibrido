@@ -3,16 +3,23 @@ import raw from "./real-samples.json";
 import type { TransactionFormValues } from "./validation";
 
 /**
- * Transacciones reales del conjunto de prueba (nunca vistas por el modelo), generadas por
- * `backend/scripts/build_evaluation.py`. La muestra está equilibrada (mitad fraudes) para
- * que en una demo aparezcan fraudes con frecuencia; en la realidad son el 1.5 %.
+ * Transacciones reales del periodo de prueba de Sparkov (jun–dic 2020), que el modelo
+ * nunca vio al entrenar. Las genera `backend/scripts/build_sparkov_artifacts.py`. La
+ * muestra está equilibrada (mitad fraudes) para que en una demo aparezcan fraudes con
+ * frecuencia; en la realidad son el 0.39 %.
  */
 type ThresholdField = "decisionThreshold";
 
 export interface RealSample {
   id: string;
   isFraud: boolean;
-  values: Record<Exclude<keyof TransactionFormValues, ThresholdField>, string | number>;
+  values: {
+    cardId: string;
+    transactionTime: string;
+    amount: number;
+    category: string;
+    merchantDistanceKm: number;
+  };
 }
 
 const data = raw as unknown as { note: string; samples: RealSample[] };
@@ -25,14 +32,17 @@ export function pickRealSample(excludeId?: string, random: () => number = Math.r
   return pool[Math.floor(random() * pool.length)] ?? REAL_SAMPLES[0];
 }
 
-/** Carga los valores de la transacción real conservando los umbrales que el usuario eligió. */
+/** Carga los valores de la transacción real conservando el umbral que el usuario eligió. */
 export function sampleToFormValues(
   sample: RealSample,
   thresholds: Pick<TransactionFormValues, ThresholdField>,
 ): TransactionFormValues {
-  const entries = Object.entries(sample.values).map(([key, value]) => [key, String(value)]);
   return {
-    ...(Object.fromEntries(entries) as Omit<TransactionFormValues, ThresholdField>),
+    cardId: sample.values.cardId,
+    transactionTime: sample.values.transactionTime,
+    amount: String(sample.values.amount),
+    category: sample.values.category,
+    merchantDistanceKm: String(sample.values.merchantDistanceKm),
     decisionThreshold: thresholds.decisionThreshold,
   };
 }

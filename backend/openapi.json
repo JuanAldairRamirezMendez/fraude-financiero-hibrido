@@ -1007,120 +1007,66 @@
     "schemas": {
       "AnalyzeRequest": {
         "properties": {
-          "transactionHour": {
-            "type": "integer",
-            "maximum": 23.0,
-            "minimum": 0.0,
-            "title": "Transactionhour"
-          },
-          "transactionDayOfWeek": {
-            "type": "integer",
-            "maximum": 6.0,
-            "minimum": 0.0,
-            "title": "Transactiondayofweek"
-          },
-          "accountAgeDays": {
-            "type": "integer",
-            "maximum": 20000.0,
-            "minimum": 0.0,
-            "title": "Accountagedays"
-          },
-          "previousChargebacks": {
-            "type": "integer",
-            "maximum": 50.0,
-            "minimum": 0.0,
-            "title": "Previouschargebacks"
-          },
-          "merchantCategory": {
+          "cardId": {
             "type": "string",
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Merchantcategory"
+            "pattern": "^TARJ-\\d{4}$",
+            "title": "Cardid",
+            "examples": [
+              "TARJ-0471"
+            ]
           },
-          "transactionCountry": {
+          "transactionTime": {
             "type": "string",
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Transactioncountry"
+            "format": "date-time",
+            "title": "Transactiontime",
+            "examples": [
+              "2020-10-15T22:23:52"
+            ]
           },
-          "deviceType": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Devicetype"
-          },
-          "transactionType": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Transactiontype"
-          },
-          "geoLocationRegion": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Geolocationregion"
-          },
-          "isInternational": {
-            "type": "integer",
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "title": "Isinternational"
-          },
-          "isHighRiskMerchantCategory": {
-            "type": "integer",
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "title": "Ishighriskmerchantcategory"
-          },
-          "isWeekend": {
-            "type": "integer",
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "title": "Isweekend"
-          },
-          "customerTotalTransactions30d": {
-            "type": "integer",
-            "maximum": 500.0,
-            "minimum": 0.0,
-            "title": "Customertotaltransactions30D"
-          },
-          "customerRiskScore": {
+          "amount": {
             "type": "number",
-            "maximum": 10.0,
-            "minimum": 0.0,
-            "title": "Customerriskscore"
-          },
-          "transactionAmount": {
-            "type": "number",
-            "maximum": 1000000.0,
+            "maximum": 50000.0,
             "exclusiveMinimum": 0.0,
-            "title": "Transactionamount"
+            "title": "Amount"
           },
-          "avgTransactionAmount30dCustomer": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "entertainment",
+              "food_dining",
+              "gas_transport",
+              "grocery_net",
+              "grocery_pos",
+              "health_fitness",
+              "home",
+              "kids_pets",
+              "misc_net",
+              "misc_pos",
+              "personal_care",
+              "shopping_net",
+              "shopping_pos",
+              "travel"
+            ],
+            "title": "Category"
+          },
+          "merchantDistanceKm": {
             "type": "number",
-            "maximum": 1000000.0,
+            "maximum": 1000.0,
             "minimum": 0.0,
-            "title": "Avgtransactionamount30Dcustomer"
-          },
-          "transactionVelocity1h": {
-            "type": "integer",
-            "maximum": 100.0,
-            "minimum": 0.0,
-            "title": "Transactionvelocity1H"
-          },
-          "transactionVelocity24h": {
-            "type": "integer",
-            "maximum": 500.0,
-            "minimum": 0.0,
-            "title": "Transactionvelocity24H"
+            "title": "Merchantdistancekm"
           },
           "decisionThreshold": {
-            "type": "number",
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "title": "Decisionthreshold",
-            "default": 0.5
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decisionthreshold"
           },
           "blockThreshold": {
             "anyOf": [
@@ -1139,26 +1085,14 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "transactionHour",
-          "transactionDayOfWeek",
-          "accountAgeDays",
-          "previousChargebacks",
-          "merchantCategory",
-          "transactionCountry",
-          "deviceType",
-          "transactionType",
-          "geoLocationRegion",
-          "isInternational",
-          "isHighRiskMerchantCategory",
-          "isWeekend",
-          "customerTotalTransactions30d",
-          "customerRiskScore",
-          "transactionAmount",
-          "avgTransactionAmount30dCustomer",
-          "transactionVelocity1h",
-          "transactionVelocity24h"
+          "cardId",
+          "transactionTime",
+          "amount",
+          "category",
+          "merchantDistanceKm"
         ],
-        "title": "AnalyzeRequest"
+        "title": "AnalyzeRequest",
+        "description": "Una compra con tarjeta. El historial de la tarjeta lo aporta el servidor."
       },
       "AnalyzeResponse": {
         "properties": {
@@ -1271,6 +1205,16 @@
               }
             ],
             "title": "Casenumber"
+          },
+          "card": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CardContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -1357,6 +1301,86 @@
           "role"
         ],
         "title": "AuthUser"
+      },
+      "CardContext": {
+        "properties": {
+          "previousPurchases": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Previouspurchases"
+          },
+          "secondsSincePrevious": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secondssinceprevious"
+          },
+          "averageAmount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Averageamount"
+          },
+          "purchases1h": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Purchases1H"
+          },
+          "amount1h": {
+            "type": "number",
+            "title": "Amount1H"
+          },
+          "purchases24h": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Purchases24H"
+          },
+          "amount24h": {
+            "type": "number",
+            "title": "Amount24H"
+          },
+          "customerAge": {
+            "type": "integer",
+            "title": "Customerage"
+          },
+          "customerGender": {
+            "type": "string",
+            "title": "Customergender"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "previousPurchases",
+          "purchases1h",
+          "amount1h",
+          "purchases24h",
+          "amount24h",
+          "customerAge",
+          "customerGender",
+          "city",
+          "state"
+        ],
+        "title": "CardContext",
+        "description": "Historial reciente de la tarjeta usado por el modelo, en términos legibles."
       },
       "CaseCreateRequest": {
         "properties": {
@@ -1445,6 +1469,16 @@
             },
             "type": "array",
             "title": "Shap"
+          },
+          "card": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CardContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -1885,7 +1919,8 @@
               "integer",
               "number",
               "binary",
-              "category"
+              "category",
+              "datetime"
             ],
             "title": "Kind"
           },
@@ -2533,6 +2568,17 @@
           "riskLabel": {
             "type": "integer",
             "title": "Risklabel"
+          },
+          "occurredAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurredat"
           }
         },
         "additionalProperties": false,

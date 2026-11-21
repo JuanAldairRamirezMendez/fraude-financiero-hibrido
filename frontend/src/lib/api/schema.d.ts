@@ -248,49 +248,33 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** AnalyzeRequest */
+        /**
+         * AnalyzeRequest
+         * @description Una compra con tarjeta. El historial de la tarjeta lo aporta el servidor.
+         */
         AnalyzeRequest: {
-            /** Transactionhour */
-            transactionHour: number;
-            /** Transactiondayofweek */
-            transactionDayOfWeek: number;
-            /** Accountagedays */
-            accountAgeDays: number;
-            /** Previouschargebacks */
-            previousChargebacks: number;
-            /** Merchantcategory */
-            merchantCategory: string;
-            /** Transactioncountry */
-            transactionCountry: string;
-            /** Devicetype */
-            deviceType: string;
-            /** Transactiontype */
-            transactionType: string;
-            /** Geolocationregion */
-            geoLocationRegion: string;
-            /** Isinternational */
-            isInternational: number;
-            /** Ishighriskmerchantcategory */
-            isHighRiskMerchantCategory: number;
-            /** Isweekend */
-            isWeekend: number;
-            /** Customertotaltransactions30D */
-            customerTotalTransactions30d: number;
-            /** Customerriskscore */
-            customerRiskScore: number;
-            /** Transactionamount */
-            transactionAmount: number;
-            /** Avgtransactionamount30Dcustomer */
-            avgTransactionAmount30dCustomer: number;
-            /** Transactionvelocity1H */
-            transactionVelocity1h: number;
-            /** Transactionvelocity24H */
-            transactionVelocity24h: number;
             /**
-             * Decisionthreshold
-             * @default 0.5
+             * Cardid
+             * @example TARJ-0471
              */
-            decisionThreshold: number;
+            cardId: string;
+            /**
+             * Transactiontime
+             * Format: date-time
+             * @example 2020-10-15T22:23:52
+             */
+            transactionTime: string;
+            /** Amount */
+            amount: number;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "entertainment" | "food_dining" | "gas_transport" | "grocery_net" | "grocery_pos" | "health_fitness" | "home" | "kids_pets" | "misc_net" | "misc_pos" | "personal_care" | "shopping_net" | "shopping_pos" | "travel";
+            /** Merchantdistancekm */
+            merchantDistanceKm: number;
+            /** Decisionthreshold */
+            decisionThreshold?: number | null;
             /** Blockthreshold */
             blockThreshold?: number | null;
         };
@@ -345,6 +329,7 @@ export interface components {
             caseId?: string | null;
             /** Casenumber */
             caseNumber?: string | null;
+            card?: components["schemas"]["CardContext"] | null;
         };
         /** AuthResponse */
         AuthResponse: {
@@ -369,6 +354,34 @@ export interface components {
              * @enum {string}
              */
             role: "admin" | "analyst" | "viewer";
+        };
+        /**
+         * CardContext
+         * @description Historial reciente de la tarjeta usado por el modelo, en términos legibles.
+         */
+        CardContext: {
+            /** Previouspurchases */
+            previousPurchases: number;
+            /** Secondssinceprevious */
+            secondsSincePrevious?: number | null;
+            /** Averageamount */
+            averageAmount?: number | null;
+            /** Purchases1H */
+            purchases1h: number;
+            /** Amount1H */
+            amount1h: number;
+            /** Purchases24H */
+            purchases24h: number;
+            /** Amount24H */
+            amount24h: number;
+            /** Customerage */
+            customerAge: number;
+            /** Customergender */
+            customerGender: string;
+            /** City */
+            city: string;
+            /** State */
+            state: string;
         };
         /** CaseCreateRequest */
         CaseCreateRequest: {
@@ -404,6 +417,7 @@ export interface components {
             };
             /** Shap */
             shap: components["schemas"]["ShapContribution"][];
+            card?: components["schemas"]["CardContext"] | null;
         };
         /** CaseListResponse */
         CaseListResponse: {
@@ -532,7 +546,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "integer" | "number" | "binary" | "category";
+            kind: "integer" | "number" | "binary" | "category" | "datetime";
             /** Required */
             required: boolean;
             /** Default */
@@ -759,6 +773,8 @@ export interface components {
             status: "Flagged" | "Review" | "Approved";
             /** Risklabel */
             riskLabel: number;
+            /** Occurredat */
+            occurredAt?: string | null;
         };
         /** TransactionPage */
         TransactionPage: {

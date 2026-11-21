@@ -13,7 +13,7 @@ def test_analyze_returns_contract(client, valid_payload):  # type: ignore[no-unt
     assert body["level"] == "high"
     assert body["blocked"] is True
     assert len(body["shap"]) == 2
-    assert body["topDriver"]["feature"] == "transaction_amount"
+    assert body["topDriver"]["feature"] == "monto"
     assert body["modelVersion"] == "fake-xgboost-1.0.0"
     assert response.headers["X-Request-ID"]
     assert response.headers["Cache-Control"] == "no-store"
@@ -27,7 +27,7 @@ def test_analyze_idempotent_replay_and_conflict(client, valid_payload):  # type:
     assert second.json()["idempotentReplay"] is True
     assert second.json()["decisionId"] == first.json()["decisionId"]
 
-    changed = {**valid_payload, "transactionAmount": 100}
+    changed = {**valid_payload, "amount": 100}
     conflict = client.post("/api/v1/analyze", json=changed, headers=headers)
     assert conflict.status_code == 409
     assert conflict.json()["code"] == "conflict"
@@ -35,7 +35,7 @@ def test_analyze_idempotent_replay_and_conflict(client, valid_payload):  # type:
 
 def test_case_lifecycle_and_human_feedback(client, valid_payload):  # type: ignore[no-untyped-def]
     # Una transacción aprobada no abre caso solo; aquí el analista lo abre a mano.
-    approved = {**valid_payload, "transactionAmount": 100}
+    approved = {**valid_payload, "amount": 100}
     analyzed = client.post("/api/v1/analyze", json=approved).json()
     decision_id = analyzed["decisionId"]
 
@@ -67,7 +67,7 @@ def test_case_lifecycle_and_human_feedback(client, valid_payload):  # type: igno
 
 
 def test_case_requires_verdict_to_resolve(client, valid_payload):  # type: ignore[no-untyped-def]
-    approved = {**valid_payload, "transactionAmount": 100}
+    approved = {**valid_payload, "amount": 100}
     decision_id = client.post("/api/v1/analyze", json=approved).json()["decisionId"]
     case = client.post("/api/v1/cases", json={"decisionId": decision_id}).json()
     response = client.patch(f"/api/v1/cases/{case['id']}", json={"status": "resolved"})
@@ -88,7 +88,7 @@ def test_analyze_rejects_extra_fields(client, valid_payload):  # type: ignore[no
 
 def test_analyze_rejects_out_of_range(client, valid_payload):  # type: ignore[no-untyped-def]
     response = client.post(
-        "/api/v1/analyze", json={**valid_payload, "transactionHour": 99}
+        "/api/v1/analyze", json={**valid_payload, "merchantDistanceKm": -1}
     )
     assert response.status_code == 422
     assert response.json()["code"] == "validation_error"
@@ -177,21 +177,34 @@ def test_risk_level_matches_api_contract() -> None:
 
 
 def test_analyze_accepts_real_dataset_ranges(client, valid_payload):  # type: ignore[no-untyped-def]
-    """The raw dataset reaches customer_risk_score=7.72 and account_age_days=6307."""
-    payload = {**valid_payload, "customerRiskScore": 7.72, "accountAgeDays": 6307}
+    """El monto máximo del dataset Sparkov es 28 948.90; la hora puede venir con zona."""
+    payload = {**valid_payload, "amount": 28_948.9, "transactionTime": "2020-10-15T22:23:52Z"}
     response = client.post("/api/v1/analyze", json=payload)
     assert response.status_code == 200
 
 
-def test_analyze_rejects_values_beyond_widened_limits(client, valid_payload):  # type: ignore[no-untyped-def]
-    for field, value in [("customerRiskScore", 10.5), ("accountAgeDays", 20_001)]:
+def test_analyze_rejects_invalid_transactions(client, valid_payload):  # type: ignore[no-untyped-def]
+    for field, value in [
+        ("amount", 50_001),
+        ("amount", 0),
+        ("category", "gambling"),
+        ("cardId", "4532-1234"),
+        ("transactionTime", "ayer"),
+    ]:
         response = client.post("/api/v1/analyze", json={**valid_payload, field: value})
         assert response.status_code == 422, field
 
 
+def test_analyze_uses_calibrated_threshold_by_default(client, valid_payload):  # type: ignore[no-untyped-def]
+    payload = {key: value for key, value in valid_payload.items() if key != "decisionThreshold"}
+    body = client.post("/api/v1/analyze", json=payload).json()
+    assert body["reviewThreshold"] == 0.25
+    assert body["decision"] == "block"
+
+
 def test_policy_approves_or_blocks_and_opens_case(client, valid_payload):  # type: ignore[no-untyped-def]
     # La analítica falsa devuelve 0.91 para montos >= 3000 y 0.12 para el resto.
-    approved = client.post("/api/v1/analyze", json={**valid_payload, "transactionAmount": 100}).json()
+    approved = client.post("/api/v1/analyze", json={**valid_payload, "amount": 100}).json()
     assert approved["decision"] == "approve"
     assert approved["level"] == "low"
     assert approved["blocked"] is False
@@ -225,9 +238,9 @@ def test_blocked_decision_opens_case_with_model_context(client, valid_payload): 
     assert case["decisionId"] == review["decisionId"]
     assert case["decision"]["decision"] == "block"
     assert case["decision"]["score"] == 91
-    assert case["decision"]["transaction"]["transactionAmount"] == 9000
+    assert case["decision"]["transaction"]["amount"] == 9000
     assert "decisionThreshold" not in case["decision"]["transaction"]
-    assert case["decision"]["shap"][0]["feature"] == "transaction_amount"
+    assert case["decision"]["shap"][0]["feature"] == "monto"
 
     listed = client.get("/api/v1/cases").json()
     assert [item["id"] for item in listed["items"]] == [review["caseId"]]

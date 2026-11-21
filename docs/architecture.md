@@ -54,24 +54,33 @@ esos recursos devuelven un error de servicio no disponible.
 
 El endpoint `POST /api/v1/analyze` sigue este recorrido:
 
-1. `AnalyzeRequest` valida rangos, categorías y campos obligatorios.
+1. `AnalyzeRequest` valida la compra: tarjeta (`TARJ-0001`…), fecha y hora,
+   monto, categoría del comercio y distancia al comercio.
 2. `AnalyzeService` calcula un hash del payload cuando hay idempotencia.
-3. `InferenceService` construye un `DataFrame` con las 18 features originales.
-4. `ArtifactStore` aplica el preprocesador persistido.
-5. XGBoost produce una probabilidad de fraude.
-6. La probabilidad se convierte en score de 0 a 100 y nivel de riesgo.
-7. SHAP obtiene las contribuciones de las features más importantes.
-8. La decisión se persiste junto con su payload y auditoría.
-9. Se devuelve la versión del modelo, el umbral calibrado y la explicación.
+3. `InferenceService` pide a `CardHistory` las variables de la compra: datos
+   de la transacción más el historial de la tarjeta (compras en la última hora,
+   en 24 h y 7 días, tiempo desde la compra anterior, desvío de su gasto
+   habitual). Solo se usan compras anteriores a la fecha analizada.
+4. XGBoost produce una probabilidad de fraude.
+5. La probabilidad se convierte en score de 0 a 100 y en una decisión.
+6. SHAP obtiene las contribuciones de las variables más importantes.
+7. La compra se agrega al historial en memoria de la tarjeta.
+8. La decisión se persiste junto con su payload y auditoría; si se bloquea,
+   se abre un caso para el analista.
+9. Se devuelve la versión del modelo, el umbral, la explicación y el
+   historial reciente de la tarjeta.
 
-El artefacto actual es XGBoost Tier 2 con calibración isotónica. Su metadata
-se encuentra en `backend/artifacts/model_metadata.json`; el contrato de
-features está en `backend/artifacts/feature_contract.json`.
+El modelo actual es XGBoost entrenado con el dataset Sparkov (1.85 millones de
+transacciones con tarjeta, 2019–2020), en formato JSON nativo
+(`models_saved/xgboost_sparkov.json`). Las variables se calculan en
+`backend/app/ml/sparkov.py`, el mismo código para entrenar y para la API.
+Todo se regenera con `backend/scripts/build_sparkov_artifacts.py`.
 
-El umbral calibrado del artefacto es `0.247076`. El request también acepta
-`decisionThreshold` para definir el bloqueo de esa solicitud. La respuesta
-expone ambos conceptos: `blocked` refleja la solicitud evaluada y
-`calibratedThreshold` identifica el umbral recomendado por el modelo.
+La división es temporal: entrenamiento ene 2019–jun 2020 (el último 20 % como
+validación para el umbral) y prueba jun–dic 2020. El umbral elegido en la
+validación es `0.4658`; en la prueba el modelo obtiene F1 0.926. El request
+acepta `decisionThreshold` para definir el bloqueo de esa solicitud; si no se
+envía, se usa el umbral del modelo.
 
 ## Persistencia
 

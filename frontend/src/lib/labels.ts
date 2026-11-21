@@ -5,6 +5,33 @@
  */
 
 export const FEATURE_LABELS: Record<string, string> = {
+  monto: "Monto",
+  log_monto: "Monto (escala logarítmica)",
+  hora: "Hora de la compra",
+  dia_semana: "Día de la semana",
+  nocturna: "Compra nocturna",
+  edad: "Edad del cliente",
+  genero_m: "Género del cliente",
+  log_poblacion: "Población de la ciudad",
+  distancia_km: "Distancia al comercio",
+  monto_vs_categoria: "Monto frente a su categoría",
+  categoria: "Categoría del comercio",
+  compras_previas: "Compras previas de la tarjeta",
+  seg_desde_anterior: "Tiempo desde la compra anterior",
+  monto_vs_promedio_tarjeta: "Monto frente al promedio de la tarjeta",
+  monto_z_tarjeta: "Desvío del gasto habitual",
+  misma_categoria_previas: "Compras previas en la categoría",
+  compras_1h: "Compras en la última hora",
+  monto_1h: "Gasto en la última hora",
+  compras_24h: "Compras en 24 h",
+  monto_24h: "Gasto en 24 h",
+  compras_7d: "Compras en 7 días",
+  monto_7d: "Gasto en 7 días",
+  monto_vs_24h: "Peso de la compra en el gasto de 24 h",
+};
+
+/** Variables del modelo anterior: los casos antiguos de la base de datos aún las traen. */
+const LEGACY_FEATURE_LABELS: Record<string, string> = {
   transaction_hour: "Hora de la transacción",
   transaction_day_of_week: "Día de la semana",
   account_age_days: "Antigüedad de la cuenta",
@@ -26,6 +53,23 @@ export const FEATURE_LABELS: Record<string, string> = {
 };
 
 export const MERCHANT_CATEGORY_LABELS: Record<string, string> = {
+  entertainment: "Entretenimiento",
+  food_dining: "Restaurantes",
+  gas_transport: "Gasolina y transporte",
+  grocery_net: "Supermercado en línea",
+  grocery_pos: "Supermercado",
+  health_fitness: "Salud y deporte",
+  home: "Hogar",
+  kids_pets: "Niños y mascotas",
+  misc_net: "Varios en línea",
+  misc_pos: "Varios",
+  personal_care: "Cuidado personal",
+  shopping_net: "Tienda en línea",
+  shopping_pos: "Tienda",
+  travel: "Viajes",
+};
+
+const LEGACY_CATEGORY_LABELS: Record<string, string> = {
   digital_subscriptions: "Suscripciones digitales",
   electronics: "Electrónica",
   fashion: "Moda",
@@ -35,64 +79,30 @@ export const MERCHANT_CATEGORY_LABELS: Record<string, string> = {
   luxury_goods: "Artículos de lujo",
   online_services: "Servicios en línea",
   restaurant: "Restaurante",
-  travel: "Viajes",
 };
 
-export const COUNTRY_LABELS: Record<string, string> = {
-  AU: "Australia (AU)",
-  BR: "Brasil (BR)",
-  CA: "Canadá (CA)",
-  DE: "Alemania (DE)",
-  FR: "Francia (FR)",
-  IN: "India (IN)",
-  MX: "México (MX)",
-  NG: "Nigeria (NG)",
-  UK: "Reino Unido (UK)",
-  US: "Estados Unidos (US)",
-};
-
-export const DEVICE_LABELS: Record<string, string> = {
-  desktop: "Computadora",
-  mobile: "Móvil",
-  tablet: "Tablet",
-  wearable: "Wearable",
-};
-
+/** Canal de la compra, derivado de la categoría (*_net en línea, *_pos presencial). */
 export const TRANSACTION_TYPE_LABELS: Record<string, string> = {
+  online: "En línea",
+  pos: "Presencial",
+  other: "Otros comercios",
   atm_withdrawal: "Retiro en cajero",
   card_present_moto: "Tarjeta presente / MOTO",
-  online: "En línea",
-  pos: "Punto de venta (POS)",
 };
 
-export const REGION_LABELS: Record<string, string> = {
-  Africa: "África",
-  Asia: "Asia",
-  Europe: "Europa",
-  "North America": "Norteamérica",
-  "South America": "Sudamérica",
-};
+export const GENDER_LABELS: Record<string, string> = { F: "Mujer", M: "Hombre" };
 
-export const YES_NO_LABELS: Record<string, string> = { "0": "No", "1": "Sí" };
+export function categoryLabel(category: string): string {
+  return MERCHANT_CATEGORY_LABELS[category] ?? LEGACY_CATEGORY_LABELS[category] ?? category;
+}
 
-const CATEGORY_VALUE_LABELS: Record<string, Record<string, string>> = {
-  merchant_category: MERCHANT_CATEGORY_LABELS,
-  transaction_country: COUNTRY_LABELS,
-  device_type: DEVICE_LABELS,
-  transaction_type: TRANSACTION_TYPE_LABELS,
-  geo_location_region: REGION_LABELS,
-};
-
-/** Traduce una variable del modelo, incluidas las one-hot (p. ej. `merchant_category_gambling`). */
+/** Traduce una variable del modelo, incluidas las one-hot de categoría (p. ej. `cat_travel`). */
 export function featureLabel(feature: string): string {
-  const direct = FEATURE_LABELS[feature];
+  const direct = FEATURE_LABELS[feature] ?? LEGACY_FEATURE_LABELS[feature];
   if (direct) return direct;
-
-  for (const [prefix, values] of Object.entries(CATEGORY_VALUE_LABELS)) {
-    if (feature.startsWith(`${prefix}_`)) {
-      const value = feature.slice(prefix.length + 1);
-      return `${FEATURE_LABELS[prefix]}: ${values[value] ?? value}`;
-    }
+  if (feature.startsWith("cat_")) return `Categoría: ${categoryLabel(feature.slice(4))}`;
+  if (feature.startsWith("merchant_category_")) {
+    return `Categoría del comercio: ${categoryLabel(feature.slice(18))}`;
   }
   return feature;
 }
@@ -143,17 +153,10 @@ function translateWith(rules: readonly Rule[], text: string): string {
 
 const TREND_RULES: readonly Rule[] = [
   [/^Full dataset snapshot$/, () => "Instantánea completa del dataset"],
+  [/^Test period Jun\W+Dec 2020$/, () => "Periodo de prueba jun–dic 2020"],
   [/^(\d[\d,.]*) labelled fraud cases$/, (n) => `${n} casos de fraude etiquetados`],
-  [/^Tier 2 XGBoost holdout$/, () => "XGBoost Tier 2 · conjunto de prueba"],
-  [
-    /^Calibrated models*W+s*threshold ([d.]+)s*W+s*test set$/,
-    (t) => `Modelo calibrado · umbral ${t} · prueba`,
-  ],
-  [/^(d[d,.]*) blocked at threshold ([d.]+)$/, (n, t) => `${n} bloqueadas con umbral ${t}`],
-  [
-    /^(\d[\d,.]*) flagged\s*\W+\s*(\d[\d,.]*) review$/,
-    (a, b) => `${a} marcadas · ${b} en revisión`,
-  ],
+  [/^Test set\s*\W+\s*threshold ([\d.]+)$/, (t) => `Conjunto de prueba · umbral ${t}`],
+  [/^(\d[\d,.]*) blocked at threshold ([\d.]+)$/, (n, t) => `${n} bloqueadas con umbral ${t}`],
   [/^Stable$/, () => "Estable"],
   [/^(\d+) urgent$/, (n) => `${n} urgentes`],
 ];

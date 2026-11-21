@@ -4,6 +4,9 @@ import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { ChartHeader } from "@/components/ui/ChartHeader";
 import { Icon, type IconName } from "@/components/ui/Icon";
 
+import { formatCurrency } from "@/lib/format";
+import { GENDER_LABELS } from "@/lib/labels";
+
 import type { DecisionAction } from "../policy";
 import type { RiskAssessment } from "../types";
 import { RiskGauge } from "./RiskGauge";
@@ -33,6 +36,59 @@ const DECISION_VIEW: Record<
     stamp: "BLOQUEADA",
   },
 };
+
+type Card = NonNullable<RiskAssessment["card"]>;
+
+function elapsed(seconds: number): string {
+  if (seconds < 3_600) return `hace ${Math.max(1, Math.round(seconds / 60))} min`;
+  if (seconds < 86_400) return `hace ${Math.round(seconds / 3_600)} h`;
+  return `hace ${Math.round(seconds / 86_400)} días`;
+}
+
+/** Lo que el modelo sabe de la tarjeta: su actividad reciente y el perfil del cliente. */
+function CardHistory({ card }: { card: Card }) {
+  return (
+    <section className="card-history" aria-label="Historial de la tarjeta">
+      <span className="card-history-title">
+        Historial de la tarjeta · {GENDER_LABELS[card.customerGender] ?? card.customerGender},{" "}
+        {card.customerAge} años · {card.city}, {card.state}
+      </span>
+      <dl>
+        <div className={card.purchases1h >= 3 ? "is-risky" : undefined}>
+          <dt>Última hora</dt>
+          <dd>
+            {card.purchases1h} {card.purchases1h === 1 ? "compra" : "compras"} ·{" "}
+            {formatCurrency(card.amount1h)}
+          </dd>
+        </div>
+        <div className={card.purchases24h >= 8 || card.amount24h >= 1_500 ? "is-risky" : undefined}>
+          <dt>Últimas 24 h</dt>
+          <dd>
+            {card.purchases24h} compras · {formatCurrency(card.amount24h)}
+          </dd>
+        </div>
+        <div
+          className={
+            card.secondsSincePrevious != null && card.secondsSincePrevious < 600
+              ? "is-risky"
+              : undefined
+          }
+        >
+          <dt>Compra anterior</dt>
+          <dd>
+            {card.secondsSincePrevious == null
+              ? "Primera compra"
+              : elapsed(card.secondsSincePrevious)}
+          </dd>
+        </div>
+        <div>
+          <dt>Gasto promedio</dt>
+          <dd>{card.averageAmount == null ? "—" : formatCurrency(card.averageAmount)}</dd>
+        </div>
+      </dl>
+    </section>
+  );
+}
 
 interface RiskAssessmentPanelProps {
   assessment: RiskAssessment;
@@ -67,6 +123,7 @@ export function RiskAssessmentPanel({ assessment }: RiskAssessmentPanelProps) {
           </small>
         </div>
       </div>
+      {assessment.card && <CardHistory card={assessment.card} />}
       {assessment.decision !== "approve" && assessment.caseId && (
         <Link className="case-link" to={`/cases?case=${assessment.caseId}`}>
           <Icon name="alert" size={16} />

@@ -7,6 +7,7 @@ from app.core.errors import ConflictError, NotFoundError
 from app.domain.transaction import LEVEL_BY_ACTION
 from app.repositories.protocols import FraudRepository, PersistedCase, PersistedDecision
 from app.schemas.api import (
+    CardContext,
     CaseCreateRequest,
     CaseDecision,
     CaseResponse,
@@ -52,6 +53,7 @@ def _decision_summary(decision: PersistedDecision | None) -> CaseDecision | None
             if key not in THRESHOLD_FIELDS
         },
         shap=[ShapContribution.model_validate(item) for item in stored.get("shap", [])],
+        card=CardContext.model_validate(stored["card"]) if stored.get("card") else None,
     )
 
 

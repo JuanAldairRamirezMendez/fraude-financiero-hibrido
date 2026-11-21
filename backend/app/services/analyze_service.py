@@ -8,7 +8,13 @@ from datetime import UTC, datetime, timedelta
 from app.core.errors import ConflictError, ServiceUnavailableError
 from app.domain.transaction import LEVEL_BY_ACTION, Assessment, decide
 from app.repositories.protocols import FraudRepository, PersistedDecision
-from app.schemas.api import AnalyzeRequest, AnalyzeResponse, ShapContribution, TopDriver
+from app.schemas.api import (
+    AnalyzeRequest,
+    AnalyzeResponse,
+    CardContext,
+    ShapContribution,
+    TopDriver,
+)
 from app.services.case_service import new_case
 from app.services.inference_service import InferenceService
 
@@ -40,6 +46,23 @@ def _response_from_assessment(assessment: Assessment) -> AnalyzeResponse:
         model_version=assessment.model_version,
         calibrated_threshold=0.0,
         idempotent_replay=False,
+        card=(
+            CardContext(
+                previous_purchases=assessment.card.previous_purchases,
+                seconds_since_previous=assessment.card.seconds_since_previous,
+                average_amount=assessment.card.average_amount,
+                purchases_1h=assessment.card.purchases_1h,
+                amount_1h=assessment.card.amount_1h,
+                purchases_24h=assessment.card.purchases_24h,
+                amount_24h=assessment.card.amount_24h,
+                customer_age=assessment.card.customer_age,
+                customer_gender=assessment.card.customer_gender,
+                city=assessment.card.city,
+                state=assessment.card.state,
+            )
+            if assessment.card is not None
+            else None
+        ),
     )
 
 
@@ -89,16 +112,22 @@ class AnalyzeService:
                 replayed.idempotent_replay = True
                 return replayed
 
+        # Sin umbral explícito se usa el calibrado del modelo.
+        if request.decision_threshold is None:
+            request = request.model_copy(update={"decision_threshold": self._calibrated_threshold})
+        decision_threshold = float(request.decision_threshold or 0.0)
         assessment = self._inference.analyze(request)
         response = _response_from_assessment(assessment)
         response.calibrated_threshold = self._calibrated_threshold
 
         # El nivel mostrado siempre coincide con la acción tomada.
-        block_threshold = request.effective_block_threshold
-        action = decide(assessment.probability, request.decision_threshold, block_threshold)
+        block_threshold = (
+            request.block_threshold if request.block_threshold is not None else decision_threshold
+        )
+        action = decide(assessment.probability, decision_threshold, block_threshold)
         response.decision = action
         response.level = LEVEL_BY_ACTION[action]
-        response.review_threshold = request.decision_threshold
+        response.review_threshold = decision_threshold
         response.block_threshold = block_threshold
 
         # Toda transacción que no se aprueba abre un caso para que un analista la vea.
@@ -116,7 +145,7 @@ class AnalyzeService:
             score=assessment.score,
             level=response.level,
             blocked=assessment.blocked,
-            transaction_amount=request.transaction_amount,
+            transaction_amount=request.amount,
             model_version=assessment.model_version,
             request_payload=payload,
             response_payload=stored,

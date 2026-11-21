@@ -20,33 +20,21 @@ function renderPage(entry: string) {
 }
 
 describe("OverviewPage", () => {
-  it("muestra el estado de carga y luego los datos", async () => {
+  it("muestra el estado de carga y luego los indicadores y el perfil de fraude", async () => {
     renderPage("/");
 
     expect(screen.getByText("Cargando panel de transacciones…")).toBeInTheDocument();
     expect(
-      await screen.findByText("Olivia Martin", undefined, { timeout: 3000 }),
+      await screen.findByText("Transacciones totales", undefined, { timeout: 3000 }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Transacciones totales")).toBeInTheDocument();
+    expect(screen.getByText("¿Dónde se concentra el fraude?")).toBeInTheDocument();
   });
 
-  it("filtra la tabla por el término de búsqueda", async () => {
-    renderPage("/?q=olivia");
+  it("ya no muestra la tabla de transacciones del snapshot", async () => {
+    renderPage("/");
 
-    expect(
-      await screen.findByText("Olivia Martin", undefined, { timeout: 3000 }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText("Noah Williams")).not.toBeInTheDocument();
-    expect(screen.getByText(/Mostrando/, { selector: ".chart-toolbar > span" })).toHaveTextContent(
-      "Mostrando 1 de 1,428,391 transacciones procesadas",
-    );
-  });
-
-  it("muestra el estado vacío cuando no hay coincidencias", async () => {
-    renderPage("/?q=sin-coincidencias");
-
-    expect(
-      await screen.findByText("Sin transacciones de alto riesgo", undefined, { timeout: 3000 }),
-    ).toBeInTheDocument();
+    await screen.findByText("Transacciones totales", undefined, { timeout: 3000 });
+    expect(screen.queryByText("Transacciones recientes de alto riesgo")).not.toBeInTheDocument();
+    expect(screen.queryByText("Transacciones del snapshot")).not.toBeInTheDocument();
   });
 });

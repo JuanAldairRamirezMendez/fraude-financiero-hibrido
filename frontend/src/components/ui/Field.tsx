@@ -3,7 +3,7 @@ interface FieldProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  type?: "text" | "number";
+  type?: "text" | "number" | "datetime-local";
   suffix?: string;
   options?: readonly string[];
   /** Texto visible para cada opción; el valor enviado sigue siendo la clave. */
